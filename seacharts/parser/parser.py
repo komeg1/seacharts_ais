@@ -2,17 +2,17 @@ import requests
 from pyais import decode
 from pyais.stream import TCPConnection
 from pyais import AISTracker
+from display.colors import _ship_colors
 import threading
 import time
 import csv
 
-host = '#'
+host = ''
 port = 0
 
 
-
 def listen_stream()->None:
-    print("Listening to stream {host}:{port}")
+    print("Listening to stream {host}:{port}", host, port)
     with AISTracker() as tracker:
         t = threading.Timer(30, get_current_data, [tracker])
         t.start()
@@ -31,7 +31,7 @@ def get_current_data(tracker: AISTracker)->None:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for ship in tracker.tracks:
-            writer.writerow({'mmsi': ship.mmsi, 'long': ship.lon, 'lat': ship.lat, 'heading': ship.heading, 'color': 'green'})
+            writer.writerow({'mmsi': ship.mmsi, 'long': ship.lon, 'lat': ship.lat, 'heading': ship.heading, 'color': ""})
 
     timer = threading.Timer(30, get_current_data, [tracker])
     timer.start()
