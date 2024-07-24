@@ -170,7 +170,7 @@ class FeaturesManager:
                         lat_scale=float(other[3]) if len(other) > 3 else 1.0,
                     )
                     ship = shapes.Ship(*pose, **kwargs)
-                    artist = self.new_artist(ship.geometry, color)
+                    artist = self.new_artist(ship.geometry, color, z_order=1000)
                     if self._vessels.get(ship_id, None):
                         self._vessels.pop(ship_id)["artist"].remove()
                     new_vessels[ship_id] = dict(ship=ship, artist=artist)
