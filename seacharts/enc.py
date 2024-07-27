@@ -9,6 +9,7 @@ from seacharts.core import Config
 from seacharts.display import Display
 from seacharts.environment import Environment
 from seacharts.layers import Layer, VirtualWeatherLayer
+import threading
 
 
 class ENC:
@@ -28,6 +29,9 @@ class ENC:
         self._environment = Environment(self._config.settings)
         self._display = None
 
+        if self._config.settings["enc"].get("ais").get("module") == "live":
+            self.update_ais()
+
     def get_depth_at_coord(self, easting, northing):
         point = Point(easting, northing)
         for seabed in reversed(self.seabed.values()):
@@ -40,6 +44,18 @@ class ENC:
         :return: None
         """
         self._environment.map.parse_resources_into_shapefiles()
+
+    def update_ais(self) -> None:
+        """
+        Update ENC with AIS data parsed from user-specified resources every
+        given time interval
+        :return: None
+        """
+        interval = self._config.settings["enc"].get("ais").get("interval")
+        ships = self._environment.ais.get_ships()
+        self._display.add_vessels(ships)
+        t = threading.Timer(interval, self.update_ais)
+        t.start()
 
     @property
     def display(self) -> Display:

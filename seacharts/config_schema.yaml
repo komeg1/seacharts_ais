@@ -83,6 +83,28 @@ enc:
           required: False
           schema:
             type: string
+    
+    #AIS module either live or from file
+    ais:
+      required: False
+      type: dict
+      schema:
+        #module can be either live or from file
+        module:
+          required: False
+          type: string
+        #address of the live AIS stream
+        address:
+          required: False
+          type: string
+        #port of the live AIS stream
+        port:
+          required: False
+          type: integer
+        #refresh interval in seconds
+        interval:
+          required: False
+          type: integer
 
 
 display:
