@@ -27,6 +27,6 @@ class Environment:
             return FGDBParser(self.scope.extent.bbox, self.scope.resources, self.scope.autosize)
         
     def set_ais_parser(self, settings: dict) -> AISParser:
-        if settings.get("live"):
-            return AISLiveParser()
-        return AISParser()
+        if settings.get("module") == "live":
+            return AISLiveParser(self.scope)
+        return AISParser(self.scope)
