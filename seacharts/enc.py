@@ -30,7 +30,7 @@ class ENC:
         self._display = None
 
         if self._config.settings["enc"].get("ais").get("module") == "live":
-            t = threading.Thread(target=self.update_ais)
+            t = threading.Timer(self._config.settings["enc"].get("ais").get("interval"),self.update_ais)
             t.start()
 
     def get_depth_at_coord(self, easting, northing):
