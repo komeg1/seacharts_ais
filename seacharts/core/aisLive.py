@@ -6,6 +6,7 @@ from pyais import AISTracker
 from random import random
 import csv
 import threading
+import time
 
 class AISLiveParser(AISParser):
     def __init__(self, scope: Scope):
@@ -16,7 +17,6 @@ class AISLiveParser(AISParser):
 
     def get_ships(self) -> list[tuple]:
         ship_list = self.read_ships()
-        print(ship_list)
         transformed_ships = [self.transform_ship(ship) for ship in ship_list]
         return transformed_ships
 
@@ -29,7 +29,7 @@ class AISLiveParser(AISParser):
                 tracker.update(msg)
     
     def get_current_data(self, tracker: AISTracker) -> None:    
-        print(f'Snapshot taken and saved at {tracker.last_updated}')
+        print(f'Snapshot taken and saved at {time.ctime()}')
         with open('data.csv', 'w', newline='') as f:
             fieldnames = ['mmsi', 'long', 'lat', 'heading', 'color']
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -40,16 +40,23 @@ class AISLiveParser(AISParser):
         timer.start()
 
     def read_ships(self) -> list:
-        with open('data.csv', 'r') as f:
+        with open('data.csv', 'r', ) as f:
             reader = csv.reader(f)
+            next(reader, None)
             ships = []
+            ship_id = 0
             for row in reader:
+                row[0] = ship_id
+                ship_id += 1
+                if row[1] == '' or row[2] == '':
+                    continue
                 ships.append(row)
         return ships
 
     def transform_ship(self, ship: list) -> tuple:
-        mmsi = ship[0]
-        lon, lat = self.convert_to_utm(ship[1], ship[2])
-        heading = ship[3] if ship[3] <= 360 else 0 
+        mmsi = int(ship[0])
+        lon, lat = self.convert_to_utm(float(ship[1]), float(ship[2]))
+        heading = float(ship[3]) if ship[3] != '' else 0
+        heading = heading if heading <= 360 else 0 
         color = "red"
         return (mmsi, lon, lat, heading, color)

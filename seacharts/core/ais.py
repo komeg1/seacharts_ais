@@ -11,6 +11,5 @@ class AISParser:
         raise NotImplementedError
     
     def convert_to_utm(self, x: int, y: int) -> tuple[int, int]:
-        p = Proj(proj='utm', zone=33, ellps='WGS84')
-        return p(x, y)
+        return self.scope.extent.convert_lat_lon_to_utm(x, y)
     
