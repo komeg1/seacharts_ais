@@ -29,10 +29,6 @@ class ENC:
         self._environment = Environment(self._config.settings)
         self._display = None
 
-        if self._config.settings["enc"].get("ais").get("module") == "live":
-            t = threading.Timer(self._config.settings["enc"].get("ais").get("interval"),self.update_ais)
-            t.start()
-
     def get_depth_at_coord(self, easting, northing):
         point = Point(easting, northing)
         for seabed in reversed(self.seabed.values()):
@@ -52,11 +48,12 @@ class ENC:
         given time interval
         :return: None
         """
-        interval = self._config.settings["enc"].get("ais").get("interval")
-        ships = self._environment.ais.get_ships()
-        self._display.add_vessels(ships)
-        t = threading.Timer(interval, self.update_ais)
-        t.start()
+        if self._config.settings["enc"].get("ais").get("module") == "live":
+            interval = self._config.settings["enc"].get("ais").get("interval")
+            ships = self._environment.ais.get_ships()
+            self.display.add_vessels(*ships)
+        # t = threading.Timer(interval, self.update_ais)
+        # t.start()
 
     @property
     def display(self) -> Display:

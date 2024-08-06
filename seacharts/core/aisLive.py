@@ -13,6 +13,7 @@ class AISLiveParser(AISParser):
         self.scope = scope
         self.host = self.scope.settings["enc"]["ais"]["address"]
         self.port = self.scope.settings["enc"]["ais"]["port"]
+        self.interval = self.scope.settings["enc"]["ais"]["interval"]
         threading.Thread(target=self.start_stream_listen).start()
 
     def get_ships(self) -> list[tuple]:
@@ -23,7 +24,7 @@ class AISLiveParser(AISParser):
     def start_stream_listen(self)->None:
         print("Listening to stream {host}:{port}", self.host, self.port)
         with AISTracker() as tracker:
-            t = threading.Timer(30, self.get_current_data, [tracker])
+            t = threading.Timer(self.interval, self.get_current_data, [tracker])
             t.start()
             for msg in TCPConnection(self.host,port=self.port):
                 tracker.update(msg)
@@ -36,10 +37,10 @@ class AISLiveParser(AISParser):
             writer.writeheader()
             for ship in tracker.tracks:
                 writer.writerow({'mmsi': ship.mmsi, 'long': ship.lon, 'lat': ship.lat, 'heading': ship.heading, 'color': ""})
-        timer = threading.Timer(30, self.get_current_data, [tracker])
+        timer = threading.Timer(self.interval, self.get_current_data, [tracker])
         timer.start()
 
-    def read_ships(self) -> list:
+    def read_ships(self) -> list[list]:
         with open('data.csv', 'r', ) as f:
             reader = csv.reader(f)
             next(reader, None)
