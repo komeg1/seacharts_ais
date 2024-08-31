@@ -61,6 +61,7 @@ class ENC:
         if self._config.settings["enc"].get("ais").get("module") == "live":
             interval = self._config.settings["enc"].get("ais").get("interval")
             ships = self._environment.ais.get_ships()
+            #print(ships)
             self.display.add_vessels(*ships)
         # t = threading.Timer(interval, self.update_ais)
         # t.start()

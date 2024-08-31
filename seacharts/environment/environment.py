@@ -25,6 +25,9 @@ class Environment:
             if len(self.extra_layers.not_loaded_regions) > 0:
                 self.extra_layers.parse_resources_into_shapefiles()
 
+        if settings["enc"].get("ais"):
+            self.ais = self.set_ais_parser(settings["enc"]["ais"])
+
     def get_layers(self):
         return [
             *self.map.loaded_regions,
@@ -42,3 +45,4 @@ class Environment:
         if settings.get("module") == "live":
             return AISLiveParser(self.scope)
         return AISParser(self.scope)
+    

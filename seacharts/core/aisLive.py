@@ -56,7 +56,7 @@ class AISLiveParser(AISParser):
 
     def transform_ship(self, ship: list) -> tuple:
         mmsi = int(ship[0])
-        lon, lat = self.convert_to_utm(float(ship[1]), float(ship[2]))
+        lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
         heading = float(ship[3]) if ship[3] != '' else 0
         heading = heading if heading <= 360 else 0 
         color = "red"
