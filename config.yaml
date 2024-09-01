@@ -1,6 +1,6 @@
 enc:
+# TODO: implement autosize
 # test config for S-57
-
   size: [ 2.5, 1 ]
   origin: [ 17.5, 54.0 ]
   depths: [ 0, 1, 2, 5, 10, 20, 50, 100, 200, 350, 500 ]
@@ -10,20 +10,10 @@ enc:
     "CTNARE": "#964B00"
   resources: [ "data/", "data/db/PL2MP500/4/0" ]
 
-# test config for FGDB
-
-  # size: [ 9000, 5062 ]
-  # center: [ 44300, 6956450 ]
-  # depths: [ 0, 1, 2, 5, 10, 20, 50, 100, 200, 350, 500 ]
-  # crs: "UTM33N"
-  # resources: [ "data/db/More_og_Romsdal_utm33.gdb" ]
-
   time:
     time_start: "22-02-2024 09:00"
     time_end: "22-02-2024 15:00"
     period: "hour"
-
-
 #  weather:
 #    PyThor_adress: "http://127.0.0.1:5000"
 #    time_start: 1717931596
@@ -37,7 +27,8 @@ enc:
 #  crs: "UTM33N"
 #  resources: [ "/", "data/", "data/db/" ]
   ais:
-    module: "live"
+    module: "db"
+    connection_string: "data/ais.db"
     address: "195.182.206.250"
     port: 54321
     interval: 10

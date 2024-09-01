@@ -1,7 +1,7 @@
 """
 Contains the Environment class for collecting and manipulating loaded spatial data.
 """
-from seacharts.core import Scope, MapFormat, S57Parser, FGDBParser, DataParser, AISParser, AISLiveParser
+from seacharts.core import Scope, MapFormat, S57Parser, FGDBParser, DataParser, AISParser, AISLiveParser, AISDatabaseParser
 from .map import MapData
 from .weather import WeatherData
 from .extra import ExtraLayers
@@ -44,5 +44,7 @@ class Environment:
     def set_ais_parser(self, settings: dict) -> AISParser:
         if settings.get("module") == "live":
             return AISLiveParser(self.scope)
+        if(settings.get("module") == "db"):
+            return AISDatabaseParser(self.scope)
         return AISParser(self.scope)
     

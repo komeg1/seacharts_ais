@@ -95,6 +95,9 @@ enc:
         module:
           required: False
           type: string
+        connection_string:
+          required: False
+          type: string
         #address of the live AIS stream
         address:
           required: False
