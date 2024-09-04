@@ -52,20 +52,6 @@ class ENC:
         """
         self._environment.map.parse_resources_into_shapefiles()
 
-    def update_ais(self) -> None:
-        """
-        Update ENC with AIS data parsed from user-specified resources every
-        given time interval
-        :return: None
-        """
-        if self._config.settings["enc"].get("ais").get("module") == "live":
-            interval = self._config.settings["enc"].get("ais").get("interval")
-            ships = self._environment.ais.get_ships()
-            #print(ships)
-            self.display.add_vessels(*ships)
-        # t = threading.Timer(interval, self.update_ais)
-        # t.start()
-
     @property
     def display(self) -> Display:
         """

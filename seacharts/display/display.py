@@ -1,6 +1,7 @@
 """
 Contains the Display class for displaying and plotting maritime spatial data.
 """
+import threading
 import tkinter as tk
 from pathlib import Path
 from typing import Any
@@ -18,6 +19,7 @@ import seacharts.environment as env
 from .colors import colorbar
 from .events import EventsManager
 from .features import FeaturesManager
+from seacharts.core import AISLiveParser
 
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
@@ -67,6 +69,7 @@ class Display:
         self.started__ = """
         Starts the display, if it is not already started.
         """
+
         if self._is_active:
             return
         plt.show(block=False)
@@ -317,6 +320,19 @@ class Display:
         except tk.TclError:
             plt.close()
         self._draw_animated_artists()
+
+    def update_ais(self) -> None:
+        """
+        Update ENC with AIS data parsed from user-specified resources every
+        given time interval
+        :return: None
+        """
+        if self._settings["enc"].get("ais").get("module") == "live":
+            interval = self._settings["enc"].get("ais").get("interval")
+            ships = self._environment.ais.get_ships()
+            self.add_vessels(*ships)
+        t = threading.Timer(interval, self.update_ais)
+        t.start()
 
     def update_plot(self):
         """
