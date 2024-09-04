@@ -16,7 +16,7 @@ enc:
         type: float
         min: 1.0
 
-    #that's where you want top-left corner to be
+    #that's where you want bottom-left corner to be
     origin:
       required: True
       excludes: center
@@ -70,21 +70,23 @@ enc:
       required: False
       type: dict
       schema:
-        PyThor_adress:
+        PyThor_address:
           required: False
           type: string
-        #in epoch time
-        time_start:
-          required: False
-          type: integer
-        time_end:
-          required: False
-          type: integer
         variables:
           type: list
           required: False
           schema:
             type: string
+            allowed:
+              - wave_direction
+              - wave_height
+              - wave_period
+              - wind_direction
+              - wind_speed
+              - sea_current_speed
+              - sea_current_direction
+              - tide_height
     
     #AIS module either live or from file
     ais:
@@ -129,6 +131,9 @@ enc:
             - week
             - month
             - year
+        period_multiplier:
+          required: True
+          type: float
 
 
 display:
