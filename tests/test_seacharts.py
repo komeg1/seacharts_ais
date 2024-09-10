@@ -4,7 +4,7 @@ if __name__ == "__main__":
 
     size = 9000, 5062
     center = 44300, 6956450
-    enc = ENC()
+    enc = ENC("config.yaml")
     enc.display.start()
 
     # (id, easting, northing, heading, color)

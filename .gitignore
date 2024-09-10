@@ -139,6 +139,7 @@ data/shapefiles/
 data/vessels.csv
 output/
 .vscode/
+tests/data/
 
 #pycharm
 .idea

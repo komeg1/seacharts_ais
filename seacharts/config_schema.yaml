@@ -78,6 +78,7 @@ enc:
           required: False
           schema:
             type: string
+<<<<<<< main
             allowed:
               - wave_direction
               - wave_height
@@ -87,6 +88,34 @@ enc:
               - sea_current_speed
               - sea_current_direction
               - tide_height
+=======
+    
+    #AIS module either live or from file
+    ais:
+      required: False
+      type: dict
+      schema:
+        #module can be either live or from file
+        module:
+          required: False
+          type: string
+        connection_string:
+          required: False
+          type: string
+        #address of the live AIS stream
+        address:
+          required: False
+          type: string
+        #port of the live AIS stream
+        port:
+          required: False
+          type: integer
+        #refresh interval in seconds
+        interval:
+          required: False
+          type: integer
+
+>>>>>>> ais-database
     time:
       required: False
       type: dict
