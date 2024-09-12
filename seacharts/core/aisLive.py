@@ -47,16 +47,20 @@ class AISLiveParser(AISParser):
             ships = []
             ship_id = 0
             for row in reader:
-                row[0] = ship_id
-                ship_id += 1
                 if row[1] == '' or row[2] == '':
                     continue
+
+                row[0] = ship_id
+                ship_id += 1
                 ships.append(row)
         return ships
 
     def transform_ship(self, ship: list) -> tuple:
         mmsi = int(ship[0])
-        lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
+        try:
+            lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
+        except:
+            lon, lat = 0, 0
         heading = float(ship[3]) if ship[3] != '' else 0
         heading = heading if heading <= 360 else 0 
         color = "red"
