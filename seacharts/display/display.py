@@ -70,7 +70,8 @@ class Display:
         else:
             self._set_figure_position()
 
-        self._animation = FuncAnimation(self.figure, self.update_ais, interval=self._environment.ais.interval*1000, blit=True)
+        if self._settings["enc"].get("ais").get("module") == "live":
+            self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True)
 
 
     def start(self) -> None:
