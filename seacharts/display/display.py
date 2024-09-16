@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import matplotlib
+from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import colors
@@ -69,11 +70,13 @@ class Display:
         else:
             self._set_figure_position()
 
+        self._animation = FuncAnimation(self.figure, self.update_ais, interval=self._environment.ais.interval*1000, blit=True)
+
+
     def start(self) -> None:
         self.started__ = """
         Starts the display, if it is not already started.
         """
-
         if self._is_active:
             return
         plt.show(block=False)
@@ -457,18 +460,15 @@ class Display:
             plt.close()
         self._draw_animated_artists()
 
-    def update_ais(self) -> None:
+    def update_ais(self, frame):
         """
         Update ENC with AIS data parsed from user-specified resources every
         given time interval
         :return: None
         """
-        if self._settings["enc"].get("ais").get("module") == "live":
-            interval = self._settings["enc"].get("ais").get("interval")
-            ships = self._environment.ais.get_ships()
-            self.add_vessels(*ships)
-        t = threading.Timer(interval, self.update_ais)
-        t.start()
+        ships = self._environment.ais.get_ships()
+        self.add_vessels(*ships)
+        return self.features.animated
 
     def update_plot(self):
         """

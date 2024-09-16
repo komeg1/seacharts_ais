@@ -45,13 +45,10 @@ class AISLiveParser(AISParser):
             reader = csv.reader(f)
             next(reader, None)
             ships = []
-            ship_id = 0
             for row in reader:
                 if row[1] == '' or row[2] == '':
                     continue
-
-                row[0] = ship_id
-                ship_id += 1
+                
                 ships.append(row)
         return ships
 
