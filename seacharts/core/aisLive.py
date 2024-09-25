@@ -14,42 +14,35 @@ class AISLiveParser(AISParser):
         self.host = self.scope.settings["enc"]["ais"]["address"]
         self.port = self.scope.settings["enc"]["ais"]["port"]
         self.interval = self.scope.settings["enc"]["ais"]["interval"]
+        self.ships_info = []
+        self.ais = AISTracker()
         threading.Thread(target=self.start_stream_listen).start()
 
     def get_ships(self) -> list[tuple]:
         ship_list = self.read_ships()
-        transformed_ships = [self.transform_ship(ship) for ship in ship_list]
-        return transformed_ships
+        return ship_list
 
     def start_stream_listen(self)->None:
         print("Listening to stream {host}:{port}", self.host, self.port)
-        with AISTracker() as tracker:
+        with self.ais as tracker:
             t = threading.Timer(self.interval, self.get_current_data, [tracker])
             t.start()
             for msg in TCPConnection(self.host,port=self.port):
                 tracker.update(msg)
     
     def get_current_data(self, tracker: AISTracker) -> None:    
-        print(f'Snapshot taken and saved at {time.ctime()}')
-        with open('data.csv', 'w', newline='') as f:
-            fieldnames = ['mmsi', 'long', 'lat', 'heading', 'color']
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            for ship in tracker.tracks:
-                writer.writerow({'mmsi': ship.mmsi, 'long': ship.lon, 'lat': ship.lat, 'heading': ship.heading, 'color': ""})
+        for ship in tracker.tracks:
+            self.ships_info.append([ship.mmsi,ship.lon, ship.lat, ship.heading, "", ship.last_updated])
         timer = threading.Timer(self.interval, self.get_current_data, [tracker])
         timer.start()
 
     def read_ships(self) -> list[list]:
-        with open('data.csv', 'r', ) as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            ships = []
-            for row in reader:
-                if row[1] == '' or row[2] == '':
-                    continue
-                
-                ships.append(row)
+        ships = []
+        for row in self.ships_info:
+            if row[1] == None or row[2] == None:
+                continue
+            transformed_row = self.transform_ship(row)
+            ships.append(transformed_row)
         return ships
 
     def transform_ship(self, ship: list) -> tuple:
@@ -58,7 +51,7 @@ class AISLiveParser(AISParser):
             lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
         except:
             lon, lat = 0, 0
-        heading = float(ship[3]) if ship[3] != '' else 0
+        heading = float(ship[3]) if ship[3] != None else 0
         heading = heading if heading <= 360 else 0 
         color = "red"
         return (mmsi, lon, lat, heading, color)
