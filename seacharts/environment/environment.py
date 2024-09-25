@@ -15,6 +15,7 @@ class Environment:
         self.map = MapData(self.scope, self.parser)
         self.weather = WeatherData(self.scope, self.parser)
         self.extra_layers = ExtraLayers(self.scope, self.parser)
+        
 
         self.map.load_existing_shapefiles()
         if len(self.map.not_loaded_regions) > 0:
@@ -27,6 +28,9 @@ class Environment:
 
         if settings["enc"].get("ais"):
             self.ais = self.set_ais_parser(settings["enc"]["ais"])
+
+        if settings["enc"].get("ais").get("module") == "db":
+            self.get_db_data_fun = self.ais.get_db_data
 
     def get_layers(self):
         return [

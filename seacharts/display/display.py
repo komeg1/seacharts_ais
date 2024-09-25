@@ -115,6 +115,7 @@ class Display:
         :param args: tuples with id, x-coordinate, y-coordinate, heading, color
         :return: None
         """
+        
         self._refresh_vessels(list(args))
 
     def clear_vessels(self) -> None:
@@ -693,6 +694,9 @@ class Display:
                 if val != last_value:
                     self._weather_slider_handle(val)
                     last_value = val
+                    ships = self._environment.get_db_data_fun(self._environment.scope.time.datetimes[last_value])
+                    self.add_vessels(*ships)
+                    self.redraw_plot()
 
         def __update(val):
             index = int(self.slider.val)

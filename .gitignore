@@ -132,6 +132,8 @@ dmypy.json
 .pyre/
 
 # Package main
+config.yaml
+config.yml
 main.py
 todo.txt
 data/db/

@@ -1,38 +1,36 @@
 from seacharts.core import AISParser, Scope
 #from seacharts.display.colors import _ship_colors
 from random import random
-import csv
-import threading
-import time
 from datetime import datetime
 import sqlite3
 import pandas as pd
+import csv
+from datetime import datetime, timedelta
 
 class AISDatabaseParser(AISParser):
     def __init__(self, scope: Scope):
         self.scope = scope
-        self.db = {}
-        self.db_cursor = {}
-        self.connection_string = self.scope.settings["enc"]["ais"]["connection_string"]
-        self.start_db_connection()
+        self._db = {}
+        self._db_cursor = {}
+        self._connection_string = self.scope.settings["enc"]["ais"]["connection_string"]
+        self._start_db_connection()
 
-    def get_ships(self) -> list[tuple]:
-        ship_list = self.read_ships()
-        transformed_ships = [self.transform_ship(ship) for ship in ship_list]
-        return transformed_ships
 
-    def start_db_connection(self)->None:
-        self.db = sqlite3.connect(self.connection_string)
-        self.cursor = self.db.cursor()
+    def _start_db_connection(self)->None:
+        self._db = sqlite3.connect(self._connection_string)
+        self.cursor = self._db.cursor()
         print("db connected")
 
         self.get_newest_data()
     
 
     def get_newest_data(self) -> None:
-        self.get_db_data(self.scope.settings["enc"]["time"]["time_end"])
+        self.get_db_data(datetime.strptime(self.scope.settings["enc"]["time"]["time_start"],"%d-%m-%Y %H:%M"))
     
-    def get_db_data(self, timestamp) -> None:
+    def get_db_data(self, timestamp:datetime) -> None:
+        print(timestamp)
+        time_start,time_end = self._resolve_timestamp(timestamp)
+
         #time_end = datetime.strptime(slider_time_end_val, "%d-%m-%Y %H:%M")
 
         query = """
@@ -42,33 +40,30 @@ class AISDatabaseParser(AISParser):
                         SELECT mmsi, 
                         MAX(timestamp) AS max_timestamp
                         FROM AisHistory
-                        WHERE timestamp <= :time_end
+                        WHERE timestamp >= :time_start AND timestamp <= :time_end
                         GROUP BY mmsi
                 ) grouped_t ON t.mmsi = grouped_t.mmsi AND t.timestamp = grouped_t.max_timestamp;
 
                 """
 
-        df = pd.read_sql_query(query, self.db, params={"time_end": timestamp})
+        df = pd.read_sql_query(query, self._db, params={"time_start":time_start,"time_end": time_end})
         print(df)
+        with open('data.csv', 'w', newline='') as f:
+            fieldnames = ['mmsi', 'long', 'lat', 'heading', 'color']
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for index, col in df.iterrows():
+                writer.writerow({'mmsi': col["mmsi"], 'long': col["longtitude"], 'lat': col["latitude"], 'heading': col["heading"], 'color': col["color"]})
+        return self.get_ships()
+        
+    def _resolve_timestamp(self,timestamp:datetime):
+        time_end = timestamp.strftime("%d-%m-%Y %H:%M")
+        time_start = (timestamp - timedelta(hours=1)).strftime("%d-%m-%Y %H:%M")
 
-    def read_ships(self) -> list[list]:
-        with open('data.csv', 'r', ) as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            ships = []
-            ship_id = 0
-            for row in reader:
-                row[0] = ship_id
-                ship_id += 1
-                if row[1] == '' or row[2] == '':
-                    continue
-                ships.append(row)
-        return ships
+        print(time_start)
+        print(time_end)
 
-    def transform_ship(self, ship: list) -> tuple:
-        mmsi = int(ship[0])
-        lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
-        heading = float(ship[3]) if ship[3] != '' else 0
-        heading = heading if heading <= 360 else 0 
-        color = "red"
-        return (mmsi, lon, lat, heading, color)
+        return time_start,time_end
+
+
+    
