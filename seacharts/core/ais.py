@@ -1,5 +1,4 @@
 from seacharts.core import Scope
-from pyproj import Proj
 
 class AISParser:
     scope: Scope
