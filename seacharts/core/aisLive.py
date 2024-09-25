@@ -16,8 +16,9 @@ class AISLiveParser(AISParser):
             "month": 2592000,
             "year": 31536000
         }
-        self.ttl_value = self.clear_threshold[self.scope.time.period]*self.scope.time.period_mult
         self.ships_info = []
+        self.ships_list_lock = threading.Lock()
+        self.ttl_value = self.clear_threshold[self.scope.time.period]*self.scope.time.period_mult
         self.ais = AISTracker(ttl_in_seconds=self.ttl_value)
         threading.Thread(target=self.start_stream_listen).start()
 
@@ -33,19 +34,22 @@ class AISLiveParser(AISParser):
             for msg in TCPConnection(self.host,port=self.port):
                 tracker.update(msg)
     
-    def get_current_data(self, tracker: AISTracker) -> None:    
-        for ship in tracker.tracks:
-            self.ships_info.append([ship.mmsi,ship.lon, ship.lat, ship.heading, "", ship.last_updated])
+    def get_current_data(self, tracker: AISTracker) -> None:
+        with self.ships_list_lock:
+            self.ships_info.clear()
+            for ship in tracker.tracks:
+                self.ships_info.append([ship.mmsi,ship.lon, ship.lat, ship.heading, "", ship.last_updated])
         timer = threading.Timer(self.interval, self.get_current_data, [tracker])
         timer.start()
 
     def read_ships(self) -> list[list]:
         ships = []
-        for row in self.ships_info:
-            if row[1] == None or row[2] == None:
-                continue
-            transformed_row = self.transform_ship(row)
-            ships.append(transformed_row)
+        with self.ships_list_lock:
+            for row in self.ships_info:
+                if row[1] == None or row[2] == None:
+                    continue
+                transformed_row = self.transform_ship(row)
+                ships.append(transformed_row)
         return ships
 
     def transform_ship(self, ship: list) -> tuple:
