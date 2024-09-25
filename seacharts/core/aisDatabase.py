@@ -17,17 +17,34 @@ class AISDatabaseParser(AISParser):
 
 
     def _start_db_connection(self)->None:
-        self._db = sqlite3.connect(self._connection_string)
-        self.cursor = self._db.cursor()
-        print("db connected")
+        """
+        Starts the database connection based on connection string from config.yml
+        """
+        try:
+            self._db = sqlite3.connect(self._connection_string)
+            self.cursor = self._db.cursor()
+            print("db connected")
+        except sqlite3.Error as error:
+            raise ValueError(f"Unable to connect to database \n{error}") from None
 
-        self.get_newest_data()
+        self.get_start_data()
     
 
-    def get_newest_data(self) -> None:
+    def get_start_data(self) -> None:
+        """
+        Retrieves vessels' data corresponding to 'time_start' variable from config 
+        (first value of slider at startup)
+        """
         self.get_db_data(datetime.strptime(self.scope.settings["enc"]["time"]["time_start"],"%d-%m-%Y %H:%M"))
     
-    def get_db_data(self, timestamp:datetime) -> None:
+    def get_db_data(self, timestamp:datetime) -> list[tuple]:
+        """
+        Retrieves vessels' data based on passed timestamp
+        
+        :param datetime timestamp: The timestamp based on which vessels will be retrieved,  period (timestamp - [1*period type from config(min,hours)]) to timestamp
+        :return: list of ships from the period
+        :rtype: list[tuple]
+        """
         print(timestamp)
         time_start,time_end = self._resolve_timestamp(timestamp)
 
@@ -56,9 +73,31 @@ class AISDatabaseParser(AISParser):
                 writer.writerow({'mmsi': col["mmsi"], 'long': col["longtitude"], 'lat': col["latitude"], 'heading': col["heading"], 'color': col["color"]})
         return self.get_ships()
         
-    def _resolve_timestamp(self,timestamp:datetime):
+    def _resolve_timestamp(self,timestamp:datetime) -> tuple[datetime,datetime]:
+        """
+        Find a date a period (from config) before the given timestamp, the month is treated as 30 days, the year is treated as 365 days
+
+        :param datetime timestamp: timestamp base from which the other date will be found, use hour period if not given in config
+        :return: tuple of resolved dates
+        :rtype: tuple[datetime,datetime]
+        """
         time_end = timestamp.strftime("%d-%m-%Y %H:%M")
-        time_start = (timestamp - timedelta(hours=1)).strftime("%d-%m-%Y %H:%M")
+        
+        match self.scope.settings["enc"]["time"]["period"]:
+            case "hour":
+                time_start = (timestamp - timedelta(hours=1)).strftime("%d-%m-%Y %H:%M")
+            case "day":
+                time_start = (timestamp - timedelta(days=1)).strftime("%d-%m-%Y %H:%M")
+            case "week":
+                time_start = (timestamp - timedelta(weeks=1)).strftime("%d-%m-%Y %H:%M")
+            case "month":
+                time_start = (timestamp - timedelta(days=30)).strftime("%d-%m-%Y %H:%M")
+            case "year":
+                time_start = (timestamp - timedelta(days=365)).strftime("%d-%m-%Y %H:%M")
+            case _:
+                time_start = (timestamp - timedelta(hours=1)).strftime("%d-%m-%Y %H:%M")
+
+        
 
         print(time_start)
         print(time_end)

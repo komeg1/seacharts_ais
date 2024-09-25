@@ -12,8 +12,8 @@ enc:
 
   time:
     time_start: "22-02-2024 09:00"
-    time_end: "22-02-2024 15:00"
-    period: "hour"
+    time_end: "22-02-2028 15:00"
+    period: "month"
     period_multiplier: 1
 #  weather:
 #    PyThor_adress: "http://127.0.0.1:5000"
