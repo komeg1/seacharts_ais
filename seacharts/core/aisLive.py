@@ -1,12 +1,7 @@
 from seacharts.core import AISParser, Scope
-from pyais import decode
 from pyais.stream import TCPConnection
 from pyais import AISTracker
-#from seacharts.display.colors import _ship_colors
-from random import random
-import csv
 import threading
-import time
 
 class AISLiveParser(AISParser):
     def __init__(self, scope: Scope):
@@ -14,8 +9,16 @@ class AISLiveParser(AISParser):
         self.host = self.scope.settings["enc"]["ais"]["address"]
         self.port = self.scope.settings["enc"]["ais"]["port"]
         self.interval = self.scope.settings["enc"]["ais"]["interval"]
+        self.clear_threshold = {
+            "hour": 3600,
+            "day": 86400,
+            "week": 604800,
+            "month": 2592000,
+            "year": 31536000
+        }
+        self.ttl_value = self.clear_threshold[self.scope.time.period]*self.scope.time.period_mult
         self.ships_info = []
-        self.ais = AISTracker()
+        self.ais = AISTracker(ttl_in_seconds=self.ttl_value)
         threading.Thread(target=self.start_stream_listen).start()
 
     def get_ships(self) -> list[tuple]:
