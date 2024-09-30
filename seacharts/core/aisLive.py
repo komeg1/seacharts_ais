@@ -4,6 +4,10 @@ from pyais import AISTracker
 import threading
 
 class AISLiveParser(AISParser):
+    """
+    Class for parsing AIS data from live stream
+
+    """
     def __init__(self, scope: Scope):
         self.scope = scope
         self.host = self.scope.settings["enc"]["ais"]["address"]

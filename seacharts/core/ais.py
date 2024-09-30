@@ -2,6 +2,8 @@ from seacharts.core import Scope
 
 class AISParser:
     scope: Scope
+    ships_info: list[tuple]
+
 
     def __init__(self, scope: Scope):
         self.scope = scope
