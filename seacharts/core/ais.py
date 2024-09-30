@@ -6,6 +6,7 @@ class AISParser:
 
     def __init__(self, scope: Scope):
         self.scope = scope
+        self.ships_info = []
 
     def get_ships(self) -> list[tuple]:
         raise NotImplementedError
@@ -20,32 +21,31 @@ class AISParser:
             return True
         return False
     
-    def get_ships(self) -> list[tuple]:
-        ship_list = self.read_ships()
-        transformed_ships = [self.transform_ship(ship) for ship in ship_list]
-        return transformed_ships
+    def get_ships(self) -> list[list]:
+        return self.read_ships()
     
     def read_ships(self) -> list[list]:
-        with open('data.csv', 'r', ) as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            ships = []
-            ship_id = 0
-            for row in reader:
-                row[0] = ship_id
-                ship_id += 1
-                if row[1] == '' or row[2] == '':
+        ships = []
+        with self.ships_list_lock:
+            print(len(self.ships_info))
+            for row in self.ships_info:
+                if row[1] == None or row[2] == None:
                     continue
-                ships.append(row)
+                transformed_row = self.transform_ship(row)
+                ships.append(transformed_row)
         return ships
     
     def transform_ship(self, ship: list) -> tuple:
-        mmsi = int(ship[0])
-        if(self.scope.settings["enc"]["ais"]["coords_type"] != "utm"):
-            lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
-        lon = float(ship[2])
-        lat = float(ship[1])
-        heading = float(ship[3]) if ship[3] != '' else 0
-        heading = heading if heading <= 360 else 0 
-        color = ship[4]
+        try:
+            mmsi = int(ship[0])
+            if(self.scope.settings["enc"]["ais"]["coords_type"] != "utm"):
+                lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
+            else:
+                lon = float(ship[2])
+                lat = float(ship[1])
+            heading = float(ship[3]) if ship[3] != '' else 0
+            heading = heading if heading <= 360 else 0 
+            color = ship[4]
+        except:
+            return
         return (mmsi, int(lon), int(lat), heading, color)

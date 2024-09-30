@@ -35,7 +35,7 @@ def build_directory_structure(features: list[str], resources: list[str], parser:
 def write_rows_to_csv(rows: list[tuple], file_path: Path) -> None:
     with open(file_path, "w") as csv_file:
         writer = csv.writer(csv_file, delimiter=",", lineterminator="\n")
-        writer.writerows(rows)
+        writer.writerows([item for item in rows if item is not None])
 
 
 def read_ship_poses() -> Generator[tuple]:

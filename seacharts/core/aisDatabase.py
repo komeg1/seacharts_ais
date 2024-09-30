@@ -6,13 +6,15 @@ import sqlite3
 import pandas as pd
 import csv
 from datetime import datetime, timedelta
-
+import threading
 class AISDatabaseParser(AISParser):
     def __init__(self, scope: Scope):
         self.scope = scope
         self._db = {}
         self._db_cursor = {}
         self._connection_string = self.scope.settings["enc"]["ais"]["connection_string"]
+        self.ships_list_lock = threading.Lock()
+        self.ships_info = []
         self._start_db_connection()
 
 
@@ -38,6 +40,7 @@ class AISDatabaseParser(AISParser):
         self.get_db_data(datetime.strptime(self.scope.settings["enc"]["time"]["time_start"],"%d-%m-%Y %H:%M"))
     
     def get_db_data(self, timestamp:datetime) -> list[tuple]:
+        self.ships_info.clear()
         """
         Retrieves vessels' data based on passed timestamp
         
@@ -65,11 +68,17 @@ class AISDatabaseParser(AISParser):
 
         df = pd.read_sql_query(query, self._db, params={"time_start":time_start,"time_end": time_end})
         print(df)
+
+        for index,col in df.iterrows():
+                self.ships_info.append([col["mmsi"],col["longtitude"], col["latitude"], col["heading"], col["color"], col["timestamp"]])
+        return self.get_ships()
+
         with open('data.csv', 'w', newline='') as f:
             fieldnames = ['mmsi', 'long', 'lat', 'heading', 'color']
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             for index, col in df.iterrows():
+
                 writer.writerow({'mmsi': col["mmsi"], 'long': col["longtitude"], 'lat': col["latitude"], 'heading': col["heading"], 'color': col["color"]})
         return self.get_ships()
         
@@ -81,21 +90,21 @@ class AISDatabaseParser(AISParser):
         :return: tuple of resolved dates
         :rtype: tuple[datetime,datetime]
         """
-        time_end = timestamp.strftime("%d-%m-%Y %H:%M")
+        time_end = timestamp.strftime("%d-%m-%Y %H:%M:%S")
         
         match self.scope.settings["enc"]["time"]["period"]:
             case "hour":
-                time_start = (timestamp - timedelta(hours=1)).strftime("%d-%m-%Y %H:%M")
+                time_start = (timestamp - timedelta(hours=1)).strftime("%d-%m-%Y %H:%M:%S")
             case "day":
-                time_start = (timestamp - timedelta(days=1)).strftime("%d-%m-%Y %H:%M")
+                time_start = (timestamp - timedelta(days=1)).strftime("%d-%m-%Y %H:%M:%S")
             case "week":
-                time_start = (timestamp - timedelta(weeks=1)).strftime("%d-%m-%Y %H:%M")
+                time_start = (timestamp - timedelta(weeks=1)).strftime("%d-%m-%Y %H:%M:%S")
             case "month":
-                time_start = (timestamp - timedelta(days=30)).strftime("%d-%m-%Y %H:%M")
+                time_start = (timestamp - timedelta(days=30)).strftime("%d-%m-%Y %H:%M:%S")
             case "year":
-                time_start = (timestamp - timedelta(days=365)).strftime("%d-%m-%Y %H:%M")
+                time_start = (timestamp - timedelta(days=365)).strftime("%d-%m-%Y %H:%M:%S")
             case _:
-                time_start = (timestamp - timedelta(hours=1)).strftime("%d-%m-%Y %H:%M")
+                time_start = (timestamp - timedelta(hours=1)).strftime("%d-%m-%Y %H:%M:%S")
 
         
 
