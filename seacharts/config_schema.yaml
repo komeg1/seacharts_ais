@@ -110,6 +110,15 @@ enc:
         interval:
           required: False
           type: integer
+        colors:
+          required: false
+          type: dict
+          minlength: 0
+          valuesrules:
+            type: string
+          keysrules:
+            type: string
+
 
     time:
       required: False

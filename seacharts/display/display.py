@@ -17,7 +17,7 @@ from matplotlib.widgets import Slider, RadioButtons
 from cartopy.crs import UTM
 from matplotlib.gridspec import GridSpec
 from matplotlib_scalebar.scalebar import ScaleBar
-
+from .colors import assign_custom_colors
 import seacharts.environment as env
 from .colors import colorbar
 from .events import EventsManager
@@ -67,11 +67,11 @@ class Display:
         else:
             self._set_figure_position()
 
-<<<<<<< HEAD
+        if self._settings["enc"].get("ais").get("colors") is not None:
+            assign_custom_colors(self._settings["enc"]["ais"]["colors"])
         if self._settings["enc"].get("ais").get("module") == "live":
             self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True)
 
-=======
     def _set_bbox(self, environment: env.Environment) -> tuple[float, float, float, float]:
         """
         Sets bounding box for the display taking projection's (crs's) x and y limits for display into account.
@@ -91,8 +91,7 @@ class Display:
             for i in changed:
                 print(Fore.RED + f"index {i}: {environment.scope.extent.bbox[i]} changed to {bbox[i]}" + Fore.RESET)
         return bbox
->>>>>>> upstream/main
-
+    
     def start(self) -> None:
         self.started__ = """
         Starts the display, if it is not already started.
