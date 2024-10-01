@@ -16,7 +16,7 @@ from matplotlib.widgets import Slider, RadioButtons
 from cartopy.crs import UTM
 from matplotlib.gridspec import GridSpec
 from matplotlib_scalebar.scalebar import ScaleBar
-
+from .colors import assign_custom_colors
 import seacharts.environment as env
 from .colors import colorbar
 from .events import EventsManager
@@ -69,7 +69,8 @@ class Display:
             self._toggle_fullscreen(self._fullscreen_mode)
         else:
             self._set_figure_position()
-
+        if self._settings["enc"].get("ais").get("colors") is not None:
+            assign_custom_colors(self._settings["enc"]["ais"]["colors"])
         if self._settings["enc"].get("ais").get("module") == "live":
             self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True)
 

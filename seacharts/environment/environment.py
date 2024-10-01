@@ -6,7 +6,6 @@ from .map import MapData
 from .weather import WeatherData
 from .extra import ExtraLayers
 from seacharts.core import files
-
 class Environment:
     def __init__(self, settings: dict):
         self.scope = Scope(settings)
