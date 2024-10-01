@@ -1,12 +1,11 @@
 """
 Contains the Environment class for collecting and manipulating loaded spatial data.
 """
-from seacharts.core import Scope, MapFormat, S57Parser, FGDBParser, DataParser
+from seacharts.core import Scope, MapFormat, S57Parser, FGDBParser, DataParser, AISParser, AISLiveParser
 from .map import MapData
 from .weather import WeatherData
 from .extra import ExtraLayers
 from seacharts.core import files
-
 
 class Environment:
     def __init__(self, settings: dict):
@@ -26,6 +25,9 @@ class Environment:
             if len(self.extra_layers.not_loaded_regions) > 0:
                 self.extra_layers.parse_resources_into_shapefiles()
 
+        if settings["enc"].get("ais"):
+            self.ais = self.set_ais_parser(settings["enc"]["ais"])
+
     def get_layers(self):
         return [
             *self.map.loaded_regions,
@@ -38,3 +40,9 @@ class Environment:
                              self.scope.extent.out_proj)
         elif self.scope.type is MapFormat.FGDB:
             return FGDBParser(self.scope.extent.bbox, self.scope.resources)
+        
+    def set_ais_parser(self, settings: dict) -> AISParser:
+        if settings.get("module") == "live":
+            return AISLiveParser(self.scope)
+        return AISParser(self.scope)
+    
