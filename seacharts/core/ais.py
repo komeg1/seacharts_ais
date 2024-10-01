@@ -27,11 +27,16 @@ class AISParser:
     def read_ships(self) -> list[list]:
         ships = []
         with self.ships_list_lock:
-            print(len(self.ships_info))
             for row in self.ships_info:
                 if row[1] == None or row[2] == None:
                     continue
+                
                 transformed_row = self.transform_ship(row)
+                
+                if transformed_row == (-1,-1,-1,-1,""):
+                    continue
+                if not self.scope.extent.is_in_bounding_box(transformed_row[1],transformed_row[2]):
+                    continue
                 ships.append(transformed_row)
         return ships
     
@@ -47,5 +52,5 @@ class AISParser:
             heading = heading if heading <= 360 else 0 
             color = ship[4]
         except:
-            return
+            return (-1,-1,-1,-1,"")
         return (mmsi, int(lon), int(lat), heading, color)

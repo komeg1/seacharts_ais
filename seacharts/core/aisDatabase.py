@@ -65,26 +65,29 @@ class AISDatabaseParser(AISParser):
                 ) grouped_t ON t.mmsi = grouped_t.mmsi AND t.timestamp = grouped_t.max_timestamp;
 
                 """
-
-        df = pd.read_sql_query(query, self._db, params={"time_start":time_start,"time_end": time_end})
-        print(df)
+        
+        try:
+            df = pd.read_sql_query(query, self._db, params={"time_start":time_start,"time_end": time_end})
+            print(df)
+        except pd.Error as error:
+            raise ValueError(f"Unable to perform a query \n{error}") from None
 
         for index,col in df.iterrows():
                 self.ships_info.append([col["mmsi"],col["longtitude"], col["latitude"], col["heading"], col["color"], col["timestamp"]])
         return self.get_ships()
 
-        with open('data.csv', 'w', newline='') as f:
-            fieldnames = ['mmsi', 'long', 'lat', 'heading', 'color']
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            for index, col in df.iterrows():
+        # with open('data.csv', 'w', newline='') as f:
+        #     fieldnames = ['mmsi', 'long', 'lat', 'heading', 'color']
+        #     writer = csv.DictWriter(f, fieldnames=fieldnames)
+        #     writer.writeheader()
+        #     for index, col in df.iterrows():
 
-                writer.writerow({'mmsi': col["mmsi"], 'long': col["longtitude"], 'lat': col["latitude"], 'heading': col["heading"], 'color': col["color"]})
-        return self.get_ships()
+        #         writer.writerow({'mmsi': col["mmsi"], 'long': col["longtitude"], 'lat': col["latitude"], 'heading': col["heading"], 'color': col["color"]})
+        # return self.get_ships()
         
     def _resolve_timestamp(self,timestamp:datetime) -> tuple[datetime,datetime]:
         """
-        Find a date a period (from config) before the given timestamp, the month is treated as 30 days, the year is treated as 365 days
+        Find date a period (from config) before the given timestamp, the month is treated as 30 days, the year is treated as 365 days
 
         :param datetime timestamp: timestamp base from which the other date will be found, use hour period if not given in config
         :return: tuple of resolved dates
