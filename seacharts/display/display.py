@@ -14,9 +14,9 @@ from matplotlib.widgets import Slider, RadioButtons
 from cartopy.crs import UTM
 from matplotlib.gridspec import GridSpec
 from matplotlib_scalebar.scalebar import ScaleBar
-
+from matplotlib.animation import FuncAnimation
 import seacharts.environment as env
-from .colors import colorbar
+from .colors import colorbar,assign_custom_colors
 from .events import EventsManager
 from .features import FeaturesManager
 
@@ -62,6 +62,10 @@ class Display:
         self._add_scalebar()
         self.add_control_panel(self._controls)
         self.redraw_plot()
+        if self._settings["enc"].get("ais").get("colors") is not None:
+            assign_custom_colors(self._settings["enc"]["ais"]["colors"])
+        if self._settings["enc"].get("ais").get("module") == "live":
+            self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True)
         if self._fullscreen_mode:
             self._toggle_fullscreen(self._fullscreen_mode)
         else:
@@ -455,6 +459,16 @@ class Display:
             plt.close()
         self._draw_animated_artists()
 
+    def update_ais(self, frame):
+        """
+        Update ENC with AIS data parsed from user-specified resources every
+        given time interval
+        :return: None
+        """
+        ships = self._environment.ais.get_ships()
+        self.add_vessels(*ships)
+        return self.features.animated
+    
     def update_plot(self):
         """
         Update only the animated artists of the plot

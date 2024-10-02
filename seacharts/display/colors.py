@@ -36,6 +36,53 @@ _ship_colors = dict(
     black=("#000000", "#00000077"),
 )
 
+_vessel_colors = dict(
+    default              = ("#CCCCCC", "#CCCCCC55"),
+    WIG                  = ("#FF5733", "#FF573355"),
+    FISHING              = ("#FF8C00", "#FF8C0055"),
+    TOWING               = ("#FFD700", "#FFD70055"),
+    TOWING_EXCEED        = ("#FF4500", "#FF450055"),
+    DREDGING_UNDERWATER  = ("#8A2BE2", "#8A2BE255"),
+    DIVING_OPS           = ("#4682B4", "#4682B455"),
+    MILITARY_OPS         = ("#696969", "#69696955"),
+    SAILING              = ("#00FF7F", "#00FF7F55"),
+    PLEASURE_CRAFT       = ("#FF69B4", "#FF69B455"),
+    HSC                  = ("#4B0082", "#4B008255"),
+    HSC_A                = ("#800080", "#80008055"),
+    HSC_B                = ("#9370DB", "#9370DB55"),
+    HSC_C                = ("#8B0000", "#8B000055"),
+    HSC_D                = ("#B22222", "#B2222255"),
+    PILOT                = ("#00008B", "#00008B55"),
+    RESCUE               = ("#FF0000", "#FF000055"),
+    TUG                  = ("#D2691E", "#D2691E55"),
+    PORT_TENDER          = ("#8B4513", "#8B451355"),
+    ANTI_POLLUTION_EQ    = ("#20B2AA", "#20B2AA55"),
+    LAW_ENFORCEMENT      = ("#000080", "#00008055"),
+    LOCAL_VESSEL         = ("#32CD32", "#32CD3255"),
+    MEDICAL_TRANSPORT    = ("#FF6347", "#FF634755"),
+    NONCOMBATANT         = ("#778899", "#77889955"),
+    PASSENGER            = ("#1E90FF", "#1E90FF55"),
+    PASSENGER_A          = ("#00CED1", "#00CED155"),
+    PASSENGER_B          = ("#40E0D0", "#40E0D055"),
+    PASSENGER_C          = ("#4682B4", "#4682B455"),
+    PASSENGER_D          = ("#5F9EA0", "#5F9EA055"),
+    CARGO                = ("#DAA520", "#DAA52055"),
+    CARGO_A              = ("#B8860B", "#B8860B55"),
+    CARGO_B              = ("#CD853F", "#CD853F55"),
+    CARGO_C              = ("#D2B48C", "#D2B48C55"),
+    CARGO_D              = ("#A0522D", "#A0522D55"),
+    TANKER               = ("#A52A2A", "#A52A2A55"),
+    TANKER_A             = ("#FF4500", "#FF450055"),
+    TANKER_B             = ("#FF6347", "#FF634755"),
+    TANKER_C             = ("#FFA07A", "#FFA07A55"),
+    TANKER_D             = ("#FA8072", "#FA807255"),
+    OTHER                = ("#696969", "#69696955"),
+    OTHER_A              = ("#708090", "#70809055"),
+    OTHER_B              = ("#778899", "#77889955"),
+    OTHER_C              = ("#A9A9A9", "#A9A9A955"),
+    OTHER_D              = ("#D3D3D3", "#D3D3D355")
+)
+
 _horizon_colors = dict(
     full_horizon=("#ffffff55", "#ffffff11"),
     starboard_bow=("#00ff0099", "#00ff0055"),
@@ -59,6 +106,8 @@ _layer_colors = dict(
 def color_picker(name: str, bins: int = None) -> tuple:
     if isinstance(name, int):
         return _blues(bins)[name]
+    elif name in _vessel_colors:
+        return _vessel_colors[name]
     elif name in _ship_colors:
         return _ship_colors[name]
     elif name in _horizon_colors:
@@ -72,6 +121,12 @@ def color_picker(name: str, bins: int = None) -> tuple:
     else:
         raise ValueError(f"{name} is not a valid color")
 
+@staticmethod
+def assign_custom_colors(colors:dict):
+    for name,color in colors.items():
+        if name in _vessel_colors:
+            _vessel_colors[name] = (color,color + "55")
+            print(_vessel_colors[name])
 
 def colorbar(axes: Axes, depths: list[int]) -> Colorbar:
     depths = list(depths)
@@ -95,3 +150,4 @@ def colorbar(axes: Axes, depths: list[int]) -> Colorbar:
     cb.outline.set_linewidth(1.5)
     cb.ax.invert_yaxis()
     return cb
+

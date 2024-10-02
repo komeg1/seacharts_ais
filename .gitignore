@@ -132,6 +132,7 @@ dmypy.json
 .pyre/
 
 # Package main
+**/*.db
 config.yaml
 config.yml
 main.py
