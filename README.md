@@ -203,10 +203,10 @@ Control + `s`, Shift + `s` or `s`.
 
 ## AIS configuration
 
-In order to use AIS data, the `ais` and `time` module need to be incorporated into 
+In order to use AIS data, the `ais` and `time` module need to be added into 
 the `config.yaml` file. 
 
-
+### AIS Live data
 Example configuration for the Norwegian coastal data set using live AIS data:
 
 ```yaml
@@ -222,15 +222,17 @@ Example configuration for the Norwegian coastal data set using live AIS data:
     period_multiplier: 1
 ```
 
-
+### AIS Historical data
 Example configuration for the Norwegian coastal data set using a file with AIS data :
-
 
 ```yaml
  ais:
     module: "db"
     connection_string: "data/ais.db"
     coords_type: "lonlat"
+    colors:
+        "default": "#FF0000"
+        "FISHING": "#00FF00"
   time:
     time_start: '25-08-2024 09:00'
     time_end: '25-08-2024 13:00'
@@ -238,6 +240,69 @@ Example configuration for the Norwegian coastal data set using a file with AIS d
     period_multiplier: 1
 ```
 **Disclaimer:** AIS database is available only on the [***ais-database***]("https://github.com/komeg1/seacharts_ais/tree/ais-database") branch so far
+
+### Variables
+- `module`: The module to use for AIS data. Either `live` or `db`.
+#### Live
+- `address`: The IP address of the AIS server.
+- `port`: The port of the AIS server.
+- `interval`: The interval in seconds to update the AIS data.
+#### DB
+- `connection_string`: The path to the AIS database. (Currently only SQLite is supported)
+- `coords_type`: The type of coordinates in the database. Either `lonlat` or `utm`.
+#### Time
+- `time_start`: Format: 'dd-mm-yyyy hh:mm'. The start time of the data to be shown. (First value on the GUI slider)
+- `time_end`: Format: 'dd-mm-yyyy hh:mm'. The end time of the data to be shown. (Last value on the GUI slider)
+- `period`: The period of the data to be shown. Either `hour`, `day`, `week`, `month` or `year`. (The step of the GUI slider, the data will correspond to the period, meaning if the period is 'hour', the vessels data will be the newest data in the last hour)
+- `period_multiplier`: The multiplier of the period. E.g. if the period is `hour` and the multiplier is `2`, the data will be shown in 2-hour intervals.
+
+#### Utils
+- `colors`: The custom colors of the vessels. The colors are in the hex format. Available vessels types:
+    - `default`             
+    - `WIG`                
+    - `FISHING`            
+    - `TOWING`             
+    - `TOWING_EXCEED`      
+    - `DREDGING_UNDERWATER`
+    - `DIVING OPS`         
+    - `MILITARY OPS`       
+    - `SAILING`            
+    - `PLEASURE CRAFT`     
+    - `HSC`                
+    - `HSC_A`              
+    - `HSC_B`              
+    - `HSC_C`              
+    - `HSC_D`              
+    - `PILOT`              
+    - `RESCUE`             
+    - `TUG`                
+    - `PORT TENDER`        
+    - `ANTI_POLLUTION_EQ`  
+    - `LAW_ENFORCEMENT`    
+    - `LOCAL_VESSEL`       
+    - `MEDICAL TRANSPORT`  
+    - `NONCOMBATANT`       
+    - `PASSENGER`          
+    - `PASSENGER_A`        
+    - `PASSENGER_B`        
+    - `PASSENGER_C`        
+    - `PASSENGER_D`        
+    - `CARGO`              
+    - `CARGO_A`            
+    - `CARGO_B`            
+    - `CARGO_C`            
+    - `CARGO_D`            
+    - `TANKER`             
+    - `TANKER_A`           
+    - `TANKER_B`           
+    - `TANKER_C`           
+    - `TANKER_D`           
+    - `OTHER`              
+    - `OTHER_A`            
+    - `OTHER_B`            
+    - `OTHER_C`            
+    - `OTHER_D`            
+
 
 ## License
 
