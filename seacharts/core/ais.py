@@ -1,12 +1,12 @@
 from seacharts.core import Scope
-
+from pyproj import Proj
+import csv
 class AISParser:
     scope: Scope
-    ships_info: list[tuple]
-
 
     def __init__(self, scope: Scope):
         self.scope = scope
+        self.ships_info = []
 
     def get_ships(self) -> list[tuple]:
         raise NotImplementedError
@@ -21,3 +21,36 @@ class AISParser:
             return True
         return False
     
+    def get_ships(self) -> list[list]:
+        return self.read_ships()
+    
+    def read_ships(self) -> list[list]:
+        ships = []
+        with self.ships_list_lock:
+            for row in self.ships_info:
+                if row[1] == None or row[2] == None:
+                    continue
+                
+                transformed_row = self.transform_ship(row)
+                
+                if transformed_row == (-1,-1,-1,-1,""):
+                    continue
+                if not self.scope.extent.is_in_bounding_box(transformed_row[1],transformed_row[2]):
+                    continue
+                ships.append(transformed_row)
+        return ships
+    
+    def transform_ship(self, ship: list) -> tuple:
+        try:
+            mmsi = int(ship[0])
+            if(self.scope.settings["enc"]["ais"]["coords_type"] != "utm"):
+                lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
+            else:
+                lon = float(ship[2])
+                lat = float(ship[1])
+            heading = float(ship[3]) if ship[3] != '' else 0
+            heading = heading if heading <= 360 else 0 
+            color = ship[4]
+        except:
+            return (-1,-1,-1,-1,"")
+        return (mmsi, int(lon), int(lat), heading, color)

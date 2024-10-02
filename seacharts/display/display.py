@@ -750,6 +750,10 @@ class Display:
                 if val != last_value:
                     self._weather_slider_handle(val)
                     last_value = val
+                    ships = self._environment.get_db_data_fun(self._environment.scope.time.datetimes[last_value])
+                    print(len(ships))
+                    self.add_vessels(*ships)
+                    self.redraw_plot()
 
         def __update(val):
             index = int(self.slider.val)

@@ -157,6 +157,7 @@ class FeaturesManager:
         artist = self._display.axes.add_feature(ShapelyFeature([geometry], **kwargs))
         if z_order is None:
             artist.set_animated(True)
+        if ship_info is not None:
             self.geometries.append({'geometry': geometry, 'artist': artist, "ship_info": ship_info})
         
         
@@ -351,7 +352,7 @@ class FeaturesManager:
                         lat_scale=float(other[3]) if len(other) > 3 else 1.0,
                     )
                     ship = shapes.Ship(*pose, **kwargs)
-                    artist = self.new_artist(ship.geometry, color, ship_info=ship_details)
+                    artist = self.new_artist(ship.geometry, color, ship_info=ship_details,z_order=1000)
                     if self._vessels.get(ship_id, None):
                         self._vessels.pop(ship_id)["artist"].remove()
                     new_vessels[ship_id] = dict(ship=ship, artist=artist)
