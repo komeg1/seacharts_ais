@@ -9,6 +9,22 @@ Python-based API for Electronic Navigational Charts (ENC)
 ![](images/example1.svg
 "Example visualization with vessels and geometric shapes in dark mode.")
 
+#  Table of Contents
+* [Features](##features)
+* [Code style](##code-style)
+* [Prerequisites](##prerequisites)
+  * [Linux (Virtual Environment)](###linux-(virtual-environment))
+  * [Anaconda](###anaconda)
+  * [Windows (Pipwin)](###windows-(pipwin))
+* [Installation](##installation)
+* [Usage](##usage)
+  * [Downloading regional datasets](###downloading-regional-datasets)
+  * [Configuration and startup](###configuration-and-startup)
+  * [API usage and accessing geometric shapes](###api-usage-and-accessing-geometric-shapes)
+  * [Environment visualization](###environment-visualization)
+* [AIS configuration](##ais-configuration)
+* [License](##license)
+
 ## Features
 
 - Read and process spatial depth data from
@@ -145,7 +161,6 @@ The `config.yaml` file specifies which file paths to open and which area to load
 The corresponding `config_schema.yaml` specifies how the required setup parameters
 must be provided, using `cerberus`.
 
-
 ### API usage and accessing geometric shapes
 
 After the spatial data is parsed into shapefiles during setup, geometric
@@ -185,6 +200,44 @@ Dark mode may be toggled using the `d` key, and an optional colorbar showing
 the various depth legends may be toggled using the `c` key. Images of the
 currently shown display may be saved in various resolutions by pressing
 Control + `s`, Shift + `s` or `s`.
+
+## AIS configuration
+
+In order to use AIS data, the `ais` and `time` module need to be incorporated into 
+the `config.yaml` file. 
+
+
+Example configuration for the Norwegian coastal data set using live AIS data:
+
+```yaml
+ ais:
+    module: "live"
+    address: "153.44.253.27"
+    port: 5631
+    interval: 10
+  time:
+    time_start: '25-08-2024 09:00'
+    time_end: '25-08-2024 13:00'
+    period: "hour"
+    period_multiplier: 1
+```
+
+
+Example configuration for the Norwegian coastal data set using a file with AIS data :
+
+
+```yaml
+ ais:
+    module: "db"
+    connection_string: "data/ais.db"
+    coords_type: "lonlat"
+  time:
+    time_start: '25-08-2024 09:00'
+    time_end: '25-08-2024 13:00'
+    period: "hour"
+    period_multiplier: 1
+```
+**Disclaimer:** AIS database is available only on the [***ais-database***]("https://github.com/komeg1/seacharts_ais/tree/ais-database") branch so far
 
 ## License
 
