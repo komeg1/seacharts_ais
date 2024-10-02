@@ -7,6 +7,7 @@ from matplotlib.lines import Line2D
 from shapely.geometry import MultiLineString
 
 from seacharts import shapes, core
+
 from .colors import color_picker
 
 
@@ -15,6 +16,7 @@ class FeaturesManager:
     def __init__(self, display):
         self._display = display
         self.show_vessels = True
+        self.geometries = []
         self._vessels = {}
         self._seabeds = {}
         self._land = None
@@ -69,7 +71,7 @@ class FeaturesManager:
             artist = self.new_artist(layer.geometry, color, z_order=z_order)
         return artist
 
-    def new_artist(self, geometry, color, z_order=None, **kwargs):
+    def new_artist(self, geometry, color, z_order=None, ship_info=None, **kwargs):
         kwargs["crs"] = self._display.crs
         if z_order is not None:
             kwargs["zorder"] = z_order
@@ -77,10 +79,14 @@ class FeaturesManager:
             kwargs["ec"] = color[0]
             kwargs["fc"] = color[1]
         else:
-            kwargs["color"] = color
+            kwargs["color"] = color   
+        # Add the patch to the axes
         artist = self._display.axes.add_feature(ShapelyFeature([geometry], **kwargs))
         if z_order is None:
             artist.set_animated(True)
+            self.geometries.append({'geometry': geometry, 'artist': artist, "ship_info": ship_info})
+        
+        
         return artist
 
     def new_line_artist(self, line_geometry, color, z_order=None, **kwargs):
@@ -182,7 +188,7 @@ class FeaturesManager:
                         lat_scale=float(other[3]) if len(other) > 3 else 1.0,
                     )
                     ship = shapes.Ship(*pose, **kwargs)
-                    artist = self.new_artist(ship.geometry, color)
+                    artist = self.new_artist(ship.geometry, color, ship_info=ship_details)
                     if self._vessels.get(ship_id, None):
                         self._vessels.pop(ship_id)["artist"].remove()
                     new_vessels[ship_id] = dict(ship=ship, artist=artist)
