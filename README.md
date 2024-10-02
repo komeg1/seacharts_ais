@@ -23,6 +23,9 @@ Python-based API for Electronic Navigational Charts (ENC)
   * [API usage and accessing geometric shapes](#api-usage-and-accessing-geometric-shapes)
   * [Environment visualization](#environment-visualization)
 * [AIS configuration](#ais-configuration)
+   * [AIS Live](#ais-live-dataa)
+   * [AIS Historical](#ais-historical-data)
+   * [Config variables](#variables)
 * [License](#license)
 
 ## Features
