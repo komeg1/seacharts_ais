@@ -63,22 +63,6 @@ class AISLiveParser(AISParser):
         timer = threading.Timer(self.interval, self.get_current_data, [tracker])
         timer.start()
 
-    def read_ships(self) -> list[list]:
-        """
-        Read ships from ships_info list and transform it to list of ships with format (mmsi, lon, lat, heading, color)
-
-        :return: list of ships with format (mmsi, lon, lat, heading, color)
-        :rtype: list[tuple]
-        """
-        ships = []
-        with self.ships_list_lock:
-            for row in self.ships_info:
-                if row[1] == None or row[2] == None:
-                    continue
-                transformed_row = self.transform_ship(row)
-                ships.append(transformed_row)
-        return ships
-
     def transform_ship(self, ship: list) -> tuple:
         """
         Transform ship data to format (mmsi, lon, lat, heading, color)
@@ -88,14 +72,14 @@ class AISLiveParser(AISParser):
         :return: ship data with format (mmsi, lon, lat, heading, color)
         :rtype: tuple
         """
-        mmsi = int(ship[0])
         try:
+            mmsi = int(ship[0])
             lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
+            heading = float(ship[3]) if ship[3] != None else 0
+            heading = heading if heading <= 360 else 0 
+            color = self.color_resolver(ship[4])
         except:
-            lon, lat = 0, 0
-        heading = float(ship[3]) if ship[3] != None else 0
-        heading = heading if heading <= 360 else 0 
-        color = self.color_resolver(ship[4])
+            return (-1,-1,-1,-1,"")
         return (mmsi, lon, lat, heading, color)
 
     def color_resolver(self,msg):
