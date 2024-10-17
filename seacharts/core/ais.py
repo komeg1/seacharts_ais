@@ -1,12 +1,12 @@
 from seacharts.core import Scope
-from pyproj import Proj
-import csv
+from seacharts.core.ais import AISShipData
+
 class AISParser:
     scope: Scope
+    ships_info: list[AISShipData] = []
 
     def __init__(self, scope: Scope):
         self.scope = scope
-        self.ships_info = []
 
     def get_ships(self) -> list[tuple]:
         raise NotImplementedError
@@ -40,17 +40,66 @@ class AISParser:
                 ships.append(transformed_row)
         return ships
     
-    def transform_ship(self, ship: list) -> tuple:
+    def transform_ship(self, ship: AISShipData) -> tuple:
         try:
-            mmsi = int(ship[0])
+            mmsi = ship.mmsi
             if(self.scope.settings["enc"]["ais"]["coords_type"] != "utm"):
-                lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
+                lon, lat = self.convert_to_utm(ship.lon, ship.lat)
             else:
-                lon = float(ship[2])
-                lat = float(ship[1])
-            heading = float(ship[3]) if ship[3] != '' else 0
+                lon = float(ship.lon)
+                lat = float(ship.lat)
+            heading = float(ship.heading) if ship.heading != '' else 0
             heading = heading if heading <= 360 else 0 
-            color = ship[4]
+            color = ship.color
         except:
             return (-1,-1,-1,-1,"")
         return (mmsi, int(lon), int(lat), heading, color)
+    
+class AISShipData:
+    mmsi: int
+    lon: float
+    lat: float
+    turn: float
+    speed: float
+    course: float
+    heading: int
+    imo: int
+    callsign: str
+    shipname: str
+    ship_type: int
+    to_bow: int
+    to_stern: int
+    to_port: int
+    to_starboard: int
+    destination: str
+    last_updated: float
+    name: str
+    ais_version: int
+    ais_type: str
+    status: str
+    color: str
+
+    def __init__(self, mmsi: int, lon: float, lat: float, turn: float, speed: float, course: float, heading: int, imo: int, callsign: str, shipname: str, ship_type: int, to_bow: int, to_stern: int, to_port: int, to_starboard: int, destination: str, last_updated: float, name: str, ais_version: int, ais_type: str, status: str):
+        self.mmsi = mmsi
+        self.lon = lon
+        self.lat = lat
+        self.turn = turn
+        self.speed = speed
+        self.course = course
+        self.heading = heading
+        self.imo = imo
+        self.callsign = callsign
+        self.shipname = shipname
+        self.ship_type = ship_type
+        self.to_bow = to_bow
+        self.to_stern = to_stern
+        self.to_port = to_port
+        self.to_starboard = to_starboard
+        self.destination = destination
+        self.last_updated = last_updated
+        self.name = name
+        self.ais_version = ais_version
+        self.ais_type = ais_type
+        self.status = status
+        self.color = "default"
+    

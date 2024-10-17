@@ -1,6 +1,6 @@
-from seacharts.core import AISParser, Scope
+from seacharts.core import AISParser, Scope, AISShipData
 from pyais.stream import TCPConnection
-from pyais import AISTracker,decode
+from pyais import AISTracker, AISTrack
 import threading
 
 class AISLiveParser(AISParser):
@@ -59,11 +59,12 @@ class AISLiveParser(AISParser):
         with self.ships_list_lock:
             self.ships_info.clear()
             for ship in tracker.tracks:
-                self.ships_info.append([ship.mmsi,ship.lon, ship.lat, ship.heading, ship.ship_type, ship.last_updated])
+                aisship = AISLiveShipData(ship)
+                self.ships_info.append(aisship)
         timer = threading.Timer(self.interval, self.get_current_data, [tracker])
         timer.start()
 
-    def transform_ship(self, ship: list) -> tuple:
+    def transform_ship(self, ship: AISShipData) -> tuple:
         """
         Transform ship data to format (mmsi, lon, lat, heading, color)
 
@@ -73,11 +74,11 @@ class AISLiveParser(AISParser):
         :rtype: tuple
         """
         try:
-            mmsi = int(ship[0])
-            lon, lat = self.convert_to_utm(float(ship[2]), float(ship[1]))
-            heading = float(ship[3]) if ship[3] != None else 0
+            mmsi = ship.mmsi
+            lon, lat = self.convert_to_utm(float(ship.lon), float(ship.lat))
+            heading = float(ship.heading) if ship.heading != None else 0
             heading = heading if heading <= 360 else 0 
-            color = self.color_resolver(ship[4])
+            color = ship.color
         except:
             return (-1,-1,-1,-1,"")
         return (mmsi, lon, lat, heading, color)
@@ -211,4 +212,29 @@ class AISLiveParser(AISParser):
             return  'OTHER'   # No additional info
         else:
             return  'default' 
-        
+
+class AISLiveShipData(AISShipData):
+    def __init__(self, aistrack: AISTrack):
+        self.mmsi = aistrack.mmsi
+        self.lon = aistrack.lon
+        self.lat = aistrack.lat
+        self.turn = aistrack.heading
+        self.ship_type = aistrack.ship_type
+        self.last_updated = aistrack.last_updated
+        self.name = aistrack.name
+        self.ais_version = aistrack.ais_version
+        self.ais_type = aistrack.ais_type
+        self.status = aistrack.status
+        self.course = aistrack.course
+        self.speed = aistrack.speed
+        self.heading = aistrack.heading
+        self.imo = aistrack.imo
+        self.callsign = aistrack.callsign
+        self.shipname = aistrack.shipname
+        self.to_bow = aistrack.to_bow
+        self.to_stern = aistrack.to_stern
+        self.to_port = aistrack.to_port
+        self.to_starboard = aistrack.to_starboard
+        self.destination = aistrack.destination
+        self.ship_type = aistrack.ship_type
+        self.color = self.color_resolver(aistrack.ship_type)
