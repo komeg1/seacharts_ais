@@ -185,11 +185,12 @@ class EventsManager:
             
             # Check if the click was inside the Shapely geometry
             point_clicked = Point(x, y)
-            for artist in self._display.features.geometries:
+            for artist in self._display.features.static_info_data:
                 geometry = artist["geometry"]
                 vessel_info = artist["ship_info"]
                 if geometry.contains(point_clicked):
                     print(f"Clicked inside geometry at: ({x}, {y}), vessel_info: {vessel_info}")
+                    self._display.static_info_window.refresh_data(vessel_info)
                     # Perform any action based on the geometry clicked
                     break
             else:

@@ -124,6 +124,21 @@ enc:
             type: string
           keysrules:
             type: string
+        db_fields:
+          required: false
+          type: dict
+          minlength: 0
+          valuesrules:
+            type: string
+          keysrules:
+            type: string
+        dynamic_scale: 
+          required: False
+          type: boolean
+        scale: 
+          required: False
+          type: float
+
 
 
 

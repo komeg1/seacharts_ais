@@ -1,7 +1,9 @@
-from seacharts.core import AISParser, Scope, AISShipData
+from seacharts.core import AISParser, Scope
+from seacharts.core.aisShipData import AISShipData
 from pyais.stream import TCPConnection
 from pyais import AISTracker, AISTrack
 import threading
+from datetime import datetime
 
 class AISLiveParser(AISParser):
     """
@@ -25,6 +27,13 @@ class AISLiveParser(AISParser):
         self.ttl_value = self.clear_threshold[self.scope.time.period]*self.scope.time.period_mult
         self.ais = AISTracker(ttl_in_seconds=self.ttl_value)
         threading.Thread(target=self.start_stream_listen).start()
+
+
+        if self.scope.settings["enc"]["ais"].get("dynamic_scale") == True:
+            self._dynamic_scale = True
+        else:
+            self._dynamic_scale = False
+        self._user_scale = 1.0 if self.scope.settings["enc"]["ais"].get("scale") is None else self.scope.settings["enc"]["ais"]["scale"]
 
     def get_ships(self) -> list[tuple]:
         """
@@ -56,6 +65,7 @@ class AISLiveParser(AISParser):
         :param tracker: AISTracker object
         :return: None
         """
+        print('Getting data')
         with self.ships_list_lock:
             self.ships_info.clear()
             for ship in tracker.tracks:
@@ -75,143 +85,18 @@ class AISLiveParser(AISParser):
         """
         try:
             mmsi = ship.mmsi
-            lon, lat = self.convert_to_utm(float(ship.lon), float(ship.lat))
+            lat, lon = self.convert_to_utm(float(ship.lat), float(ship.lon))
             heading = float(ship.heading) if ship.heading != None else 0
             heading = heading if heading <= 360 else 0 
             color = ship.color
+            if(ship.to_bow is not None):
+                scale = self.calculate_scale({"to_bow": ship.to_bow,"to_stern":ship.to_stern,"to_port":ship.to_port,"to_starboard":ship.to_starboard})
+                return (mmsi, int(lat), int(lon), heading, color,scale)
         except:
             return (-1,-1,-1,-1,"")
-        return (mmsi, lon, lat, heading, color)
+        return (mmsi, int(lat), int(lon), heading, color, 1.0 if not hasattr(self, '_user_scale') else self._user_scale)
 
-    def color_resolver(self,msg):
-        if msg is None:
-            return "default"
-        if isinstance(msg,str):
-            return msg
-        
-        msg = int(msg)
-        if msg == 0:
-            return  'default' 
-        elif 1 <= msg <= 19:
-            return  'default'   # Reserved for future use
-        elif msg == 20:
-            return  'WIG' 
-        elif msg == 21:
-            return  'WIG_A' 
-        elif msg == 22:
-            return  'WIG_B' 
-        elif msg == 23:
-            return  'WIG_C' 
-        elif msg == 24:
-            return  'WIG_D' 
-        elif 25 <= msg <= 29:
-            return  'WIG'   # Reserved for future use
-        elif msg == 30:
-            return  'FISHING' 
-        elif msg == 31:
-            return  'TOWING' 
-        elif msg == 32:
-            return  'TOWING_EXCEED' 
-        elif msg == 33:
-            return  'DREDGING_UNDERWATER' 
-        elif msg == 34:
-            return  'DIVING_OPS' 
-        elif msg == 35:
-            return  'MILITARY_OPS' 
-        elif msg == 36:
-            return  'SAILING' 
-        elif msg == 37:
-            return  'PLEASURE_CRAFT' 
-        elif 38 <= msg <= 39:
-            return  'default'  
-        elif msg == 40:
-            return  'HSC' 
-        elif msg == 41:
-            return  'HSC_A' 
-        elif msg == 42:
-            return  'HSC_B' 
-        elif msg == 43:
-            return  'HSC_C' 
-        elif msg == 44:
-            return  'HSC_D' 
-        elif 45 <= msg <= 49:
-            return  'HSC'   
-        elif msg == 50:
-            return  'PILOT' 
-        elif msg == 51:
-            return  'RESCUE' 
-        elif msg == 52:
-            return  'TUG' 
-        elif msg == 53:
-            return  'PORT_TENDER' 
-        elif msg == 54:
-            return  'ANTI_POLLUTION_EQ' 
-        elif msg == 55:
-            return  'LAW_ENFORCEMENT' 
-        elif 56 <= msg <= 57:
-            return  'LOCAL_VESSEL'   
-        elif msg == 58:
-            return  'MEDICAL_TRANSPORT' 
-        elif msg == 59:
-            return  'NONCOMBATANT' 
-        elif msg == 60:
-            return  'PASSENGER' 
-        elif msg == 61:
-            return  'PASSENGER_A' 
-        elif msg == 62:
-            return  'PASSENGER_B' 
-        elif msg == 63:
-            return  'PASSENGER_C' 
-        elif msg == 64:
-            return  'PASSENGER_D' 
-        elif 65 <= msg <= 68:
-            return  'PASSENGER'   
-        elif msg == 69:
-            return  'PASSENGER'  
-        elif msg == 70:
-            return  'CARGO' 
-        elif msg == 71:
-            return  'CARGO_A' 
-        elif msg == 72:
-            return  'CARGO_B' 
-        elif msg == 73:
-            return  'CARGO_C' 
-        elif msg == 74:
-            return  'CARGO_D' 
-        elif 75 <= msg <= 78:
-            return  'CARGO'   # Reserved for future use
-        elif msg == 79:
-            return  'CARGO'   # No additional info
-        elif msg == 80:
-            return  'TANKER' 
-        elif msg == 81:
-            return  'TANKER_A' 
-        elif msg == 82:
-            return  'TANKER_B' 
-        elif msg == 83:
-            return  'TANKER_C' 
-        elif msg == 84:
-            return  'TANKER_D' 
-        elif 85 <= msg <= 88:
-            return  'TANKER'   # Reserved for future use
-        elif msg == 89:
-            return  'TANKER'   # No additional info
-        elif msg == 90:
-            return  'OTHER' 
-        elif msg == 91:
-            return  'OTHER_A' 
-        elif msg == 92:
-            return  'OTHER_B' 
-        elif msg == 93:
-            return  'OTHER_C' 
-        elif msg == 94:
-            return  'OTHER_D' 
-        elif 95 <= msg <= 98:
-            return  'OTHER'   # Reserved for future use
-        elif msg == 99:
-            return  'OTHER'   # No additional info
-        else:
-            return  'default' 
+    
 
 class AISLiveShipData(AISShipData):
     def __init__(self, aistrack: AISTrack):
@@ -220,7 +105,7 @@ class AISLiveShipData(AISShipData):
         self.lat = aistrack.lat
         self.turn = aistrack.heading
         self.ship_type = aistrack.ship_type
-        self.last_updated = aistrack.last_updated
+        self.last_updated = datetime.fromtimestamp(aistrack.last_updated).strftime('%d-%m-%Y %H:%M:%S')
         self.name = aistrack.name
         self.ais_version = aistrack.ais_version
         self.ais_type = aistrack.ais_type
@@ -237,4 +122,4 @@ class AISLiveShipData(AISShipData):
         self.to_starboard = aistrack.to_starboard
         self.destination = aistrack.destination
         self.ship_type = aistrack.ship_type
-        self.color = self.color_resolver(aistrack.ship_type)
+        self.color = AISParser.color_resolver(aistrack.ship_type)

@@ -39,7 +39,7 @@ class FeaturesManager:
         """
         self._display = display
         self.show_vessels = True
-        self.geometries = []
+        self.static_info_data = []
         self._vessels = {}
         self._seabeds = {}
         self._land = None
@@ -158,7 +158,7 @@ class FeaturesManager:
         if z_order is None:
             artist.set_animated(True)
         if ship_info is not None:
-            self.geometries.append({'geometry': geometry, 'artist': artist, "ship_info": ship_info})
+            self.static_info_data.append({'geometry': geometry, 'artist': artist, "ship_info": self._display._environment.ais.get_ship_by_mmsi(ship_info[0])})
         
         
         return artist

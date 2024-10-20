@@ -1,4 +1,5 @@
 from seacharts.core import AISParser, Scope
+from seacharts.core.aisShipData import AISShipData
 #from seacharts.display.colors import _ship_colors
 from random import random
 from datetime import datetime
@@ -13,8 +14,20 @@ class AISDatabaseParser(AISParser):
         self._db = {}
         self._db_cursor = {}
         self._connection_string = self.scope.settings["enc"]["ais"]["connection_string"]
+        self.db_column_names = {
+            "mmsi": "mmsi",             
+            "lon": "longtitude",               
+            "lat": "latitude",               
+            "last_updated": "last_updated",             
+        }
+        self.append_custom_column_names()
         self.ships_list_lock = threading.Lock()
-        self.ships_info = []
+        self.ships_info:list[AISShipData] = []
+        if self.scope.settings["enc"]["ais"].get("dynamic_scale") == True:
+            self._dynamic_scale = True
+        else:
+            self._dynamic_scale = False
+        self._user_scale = 1.0 if self.scope.settings["enc"]["ais"].get("scale") is None else self.scope.settings["enc"]["ais"]["scale"]
         self._start_db_connection()
 
 
@@ -52,19 +65,20 @@ class AISDatabaseParser(AISParser):
         time_start,time_end = self._resolve_timestamp(timestamp)
 
         #time_end = datetime.strptime(slider_time_end_val, "%d-%m-%Y %H:%M")
-
-        query = """
-                SELECT t.mmsi, t.latitude, t.longtitude, t.heading, t.color, t.timestamp
+        query= f"""
+                SELECT {', '.join(f't.{custom}' for default, custom in self.db_column_names.items())}
                 FROM AisHistory t
                 JOIN (
-                        SELECT mmsi, 
-                        MAX(timestamp) AS max_timestamp
+                        SELECT {self.db_column_names["mmsi"]}, 
+                        MAX({self.db_column_names["last_updated"]}) AS max_{self.db_column_names["last_updated"]}
                         FROM AisHistory
-                        WHERE timestamp >= :time_start AND timestamp <= :time_end
-                        GROUP BY mmsi
-                ) grouped_t ON t.mmsi = grouped_t.mmsi AND t.timestamp = grouped_t.max_timestamp;
+                        WHERE {self.db_column_names["last_updated"]} >= :time_start AND {self.db_column_names["last_updated"]} <= :time_end
+                        GROUP BY {self.db_column_names["mmsi"]}
+                ) grouped_t ON t.{self.db_column_names["mmsi"]} = grouped_t.{self.db_column_names["mmsi"]} AND t.{self.db_column_names["last_updated"]} = grouped_t.max_{self.db_column_names["last_updated"]};
 
                 """
+        
+        print(query)
         
         try:
             df = pd.read_sql_query(query, self._db, params={"time_start":time_start,"time_end": time_end})
@@ -73,7 +87,7 @@ class AISDatabaseParser(AISParser):
             raise ValueError(f"Unable to perform a query \n{error}") from None
 
         for index,col in df.iterrows():
-                self.ships_info.append([col["mmsi"],col["longtitude"], col["latitude"], col["heading"], col["color"], col["timestamp"]])
+                self.ships_info.append(AISDbShipData(col))
         return self.get_ships()
 
         # with open('data.csv', 'w', newline='') as f:
@@ -115,6 +129,60 @@ class AISDatabaseParser(AISParser):
         print(time_end)
 
         return time_start,time_end
+    
+    def append_custom_column_names(self):
+        columns = self.scope.settings["enc"]["ais"].get("db_fields")
+        if columns is None:
+            return
+        
+        if "mmsi" in columns:
+            self.db_column_names["mmsi"] = columns["mmsi"]
+            del columns["mmsi"]
+
+        if "lon" in columns:
+            self.db_column_names["lon"] = columns["lon"]
+            del columns["lon"]
+
+        if "lat" in columns:
+            self.db_column_names["lat"] = columns["lat"]
+            del columns["lat"]
+
+        if "last_updated" in columns:
+            self.db_column_names["last_updated"] = columns["last_updated"]
+            del columns["last_updated"]
+
+        for key,val in columns.items():
+            self.db_column_names[key] = val
+
+
+
+
+    
+class AISDbShipData(AISShipData):
+    def __init__(self, col: pd.Series):
+        self.mmsi = col.get("mmsi")
+        self.lon = col.get("longtitude")
+        self.lat = col.get("latitude")
+        self.turn = col.get("turn")
+        self.ship_type = col.get("ship_type")
+        self.last_updated = col.get("timestamp")
+        self.name = col.get("name")
+        self.ais_version = col.get("ais_version")
+        self.ais_type = col.get("ais_type")
+        self.status = col.get("status")
+        self.course = col.get("course")
+        self.speed = col.get("speed")
+        self.heading = col.get("heading")
+        self.imo = col.get("imo")
+        self.callsign = col.get("callsign")
+        self.shipname = col.get("shipname")
+        self.to_bow = col.get("to_bow")
+        self.to_stern = col.get("to_stern")
+        self.to_port = col.get("to_port")
+        self.to_starboard = col.get("to_starboard")
+        self.destination = col.get("destination")
+        self.color = col.get("color") or AISParser.color_resolver(col.get("ship_type"))
+    
 
 
     
