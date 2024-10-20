@@ -26,7 +26,7 @@ class AISLiveParser(AISParser):
         self.ships_list_lock = threading.Lock()
         self.ttl_value = self.clear_threshold[self.scope.time.period]*self.scope.time.period_mult
         self.ais = AISTracker(ttl_in_seconds=self.ttl_value)
-        threading.Thread(target=self.start_stream_listen).start()
+        threading.Thread(target=self.start_stream_listen, daemon=True).start()
 
 
         if self.scope.settings["enc"]["ais"].get("dynamic_scale") == True:

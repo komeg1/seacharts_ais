@@ -35,7 +35,7 @@ enc:
 #  crs: "UTM33N"
 #  resources: [ "/", "data/", "data/db/" ]
   ais:
-    module: "db"
+    module: "live"
     connection_string: "data/ais.db"
     coords_type: "lonlat"
     interval: 10
