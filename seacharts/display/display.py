@@ -6,7 +6,6 @@ import threading
 import tkinter as tk
 from pathlib import Path
 from typing import Any
-
 import matplotlib
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
@@ -16,13 +15,15 @@ from matplotlib.widgets import Slider, RadioButtons
 from cartopy.crs import UTM
 from matplotlib.gridspec import GridSpec
 from matplotlib_scalebar.scalebar import ScaleBar
+import sys
+
 from .colors import assign_custom_colors
 import seacharts.environment as env
 from .colors import colorbar
 from .events import EventsManager
 from .features import FeaturesManager
-from seacharts.core import AISLiveParser
-
+from seacharts.core.aisStaticInfoWindow import AISStaticInfoWindow
+from seacharts.core.aisShipData import AISShipData
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
 matplotlib.use("TkAgg")
@@ -36,6 +37,9 @@ class Display:
     )
 
     def __init__(self, settings: dict, environment: env.Environment):
+        self.root =tk.Tk()
+        self.static_info_window = AISStaticInfoWindow(self.root, AISShipData())
+       
         self._selected_weather = None
         self.weather_map = None
         self._cbar = None
@@ -73,15 +77,27 @@ class Display:
             assign_custom_colors(self._settings["enc"]["ais"]["colors"])
         if self._settings["enc"].get("ais").get("module") == "live":
             self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True)
+        self.root.mainloop()
+        
+        
+        
+
 
 
     def start(self) -> None:
         self.started__ = """
         Starts the display, if it is not already started.
         """
+
         if self._is_active:
             return
+
+        
         plt.show(block=False)
+
+        
+        
+        
 
     @staticmethod
     def show(duration: float = 0.0):
@@ -711,10 +727,10 @@ class Display:
                 if val != last_value:
                     self._weather_slider_handle(val)
                     last_value = val
-                    ships = self._environment.get_db_data_fun(self._environment.scope.time.datetimes[last_value])
-                    print(len(ships))
-                    self.add_vessels(*ships)
-                    self.redraw_plot()
+                    if self._settings["enc"].get("ais").get("module") == "db":
+                        ships = self._environment.get_db_data_fun(self._environment.scope.time.datetimes[last_value])
+                        self.add_vessels(*ships)
+                        self.redraw_plot()
 
         def __update(val):
             index = int(self.slider.val)

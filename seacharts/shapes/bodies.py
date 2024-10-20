@@ -26,6 +26,7 @@ class Body(areas.Area, types.Oriented, types.Coordinates):
             use_radians=not self.in_degrees,
             origin=(self.center.x, self.center.y),
         )
+    
 
 
 @dataclass
@@ -51,8 +52,12 @@ class Rectangle(Body):
 @dataclass
 class Ship(Body):
     dimensions = 16, 80
-    lon_scale: float = 10.0
-    lat_scale: float = 10.0
+    lon_scale:      float = 10.0
+    lat_scale:      float = 10.0
+    avg_to_bow:     int = 25  
+    avg_to_stern:   int = 20  
+    avg_to_port:    int = 4  
+    avg_to_strbrd:  int = 4  
 
     def _body_polygon(self) -> geo.Polygon:
         x, y = self.x, self.y
@@ -63,3 +68,6 @@ class Ship(Body):
         left_bow, right_bow = (x_min, y_max), (x_max, y_max)
         coords = [left_aft, left_bow, (x, y + h / 2), right_bow, right_aft]
         return geo.Polygon(coords)
+    
+    
+
