@@ -76,7 +76,7 @@ class AISStaticInfoWindow:
 
     def update_data(self):
         if self.ship_data:
-            self.root.title(f"AIS Ship Data - {self.ship_data.shipname or self.ship_data.mmsi or "Unknown"}")
+            self.root.title(f"AIS Ship Data - {self.ship_data.shipname or self.ship_data.mmsi or 'Unknown'}")
             self.subtitle_var.set(f"MMSI: {self.get_display_value(self.ship_data.mmsi)} | Name: {self.get_display_value(self.ship_data.shipname)}")
 
             self.callsign_var.set(f"Callsign: {self.get_display_value(self.ship_data.callsign)}")
@@ -87,7 +87,7 @@ class AISStaticInfoWindow:
             self.course_var.set(f"Course: {self.get_display_value(self.ship_data.course)}")
             self.heading_var.set(f"Heading: {self.get_display_value(self.ship_data.heading)}")
             self.imo_var.set(f"IMO: {self.get_display_value(self.ship_data.imo)}")
-            self.ship_type_var.set(f"Ship Type: {"No data" if self.get_display_value(self.ship_data.color) == "default" else self.get_display_value(self.ship_data.color)}")
+            self.ship_type_var.set(f"Ship Type: {'No data' if self.get_display_value(self.ship_data.color) == 'default' else self.get_display_value(self.ship_data.color)}")
             self.to_bow_var.set(f"To Bow: {self.get_display_value(self.ship_data.to_bow)}")
             self.to_stern_var.set(f"To Stern: {self.get_display_value(self.ship_data.to_stern)}")
             self.to_port_var.set(f"To Port: {self.get_display_value(self.ship_data.to_port)}")
@@ -131,6 +131,5 @@ class AISStaticInfoWindow:
        
 
     def refresh_data(self, new_ship_data:AISShipData):
-        print("update")
         self.ship_data = new_ship_data
         self.update_data()

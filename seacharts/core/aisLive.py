@@ -65,7 +65,6 @@ class AISLiveParser(AISParser):
         :param tracker: AISTracker object
         :return: None
         """
-        print('Getting data')
         with self.ships_list_lock:
             self.ships_info.clear()
             for ship in tracker.tracks:
@@ -94,7 +93,7 @@ class AISLiveParser(AISParser):
                 return (mmsi, int(lat), int(lon), heading, color,scale)
         except:
             return (-1,-1,-1,-1,"")
-        return (mmsi, int(lat), int(lon), heading, color, 1.0 if not hasattr(self, '_user_scale') else self._user_scale)
+        return (mmsi, int(lat), int(lon), heading, color, self._user_scale)
 
     
 

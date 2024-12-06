@@ -189,13 +189,10 @@ class EventsManager:
                 geometry = artist["geometry"]
                 vessel_info = artist["ship_info"]
                 if geometry.contains(point_clicked):
-                    print(f"Clicked inside geometry at: ({x}, {y}), vessel_info: {vessel_info}")
                     self._display.static_info_window.refresh_data(vessel_info)
                     # Perform any action based on the geometry clicked
                     break
-            else:
-                print(f"Clicked outside all geometries at: ({x}, {y})")
-
+                
             if event.inaxes != self._display.axes:
                 return
             if event.button == plt.MouseButton.LEFT:

@@ -1,22 +1,21 @@
+import threading
 from seacharts.core import Scope
 from seacharts.core.aisShipData import AISShipData
 
 class AISParser:
     scope: Scope
     ships_info: list[AISShipData] = []
+    ships_list_lock: threading.Lock
 
     def __init__(self, scope: Scope):
         self.scope = scope
+        self.ships_list_lock = threading.Lock()
         if self.scope.settings["enc"]["ais"].get("dynamic_scale") == True:
             self._dynamic_scale = True
         else:
             self._dynamic_scale = False
         self._user_scale = 1.0 if self.scope.settings["enc"]["ais"].get("scale") is None else self.scope.settings["enc"]["ais"]["scale"]
-        
-
-    def get_ships(self) -> list[tuple]:
-        raise NotImplementedError
-    
+            
     def convert_to_utm(self, x: float, y: float) -> tuple[int, int]:
         if not self.validate_lon_lat(x, y):
             return (0, 0)
@@ -63,7 +62,7 @@ class AISParser:
                 return (mmsi, int(lat), int(lon), heading, color,scale)
         except:
             return (-1,-1,-1,-1,"")
-        return (mmsi, int(lat), int(lon), heading, color, 1.0 if not hasattr(self, '_user_scale') else self._user_scale)
+        return (mmsi, int(lat), int(lon), heading, color, self._user_scale)
     
     def get_ship_by_mmsi(self,mmsi: str) -> AISShipData:
         return next((ship for ship in self.ships_info if str(ship.mmsi) == str(mmsi)), None)
@@ -200,8 +199,7 @@ class AISParser:
             return  'default' 
 
     
-    def calculate_scale(self,ship_dimensions:dict):
-        
+    def calculate_scale(self,ship_dimensions:dict):       
         if self._dynamic_scale == False:
             return 1.0 if self._user_scale is None else self._user_scale
 
@@ -219,8 +217,6 @@ class AISParser:
                 actual_value = ship_dimensions[key]
                 ratio = actual_value / avg_value
                 total_ratio += ratio
-        
-        
+            
         scale_factor = (total_ratio / len(ship_dimensions)) * self._user_scale if len(ship_dimensions) > 0 else 1.0
-        print(f"Scale factor: {scale_factor}")
         return scale_factor
