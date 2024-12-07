@@ -506,11 +506,11 @@ class Display:
             plt.close()
         self._draw_animated_artists()
 
-    def update_ais(self, frame):
+    def update_ais(self, frame) -> list:
         """
         Update ENC with AIS data parsed from user-specified resources every
         given time interval
-        :return: None
+        :return: list of artists to be animated 
         """
         ships = self._environment.ais.get_ships()
         self.add_vessels(*ships)
