@@ -71,9 +71,9 @@ class Display:
         else:
             self._set_figure_position()
 
-        if self._settings["enc"].get("ais").get("colors") is not None:
+        if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("colors") is not None:
             assign_custom_colors(self._settings["enc"]["ais"]["colors"])
-        if self._settings["enc"].get("ais").get("module") == "live":
+        if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("module") == "live":
             self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True, cache_frame_data=False)
         self.root.mainloop()
         

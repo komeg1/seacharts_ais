@@ -41,8 +41,8 @@ class Environment:
 
         if settings["enc"].get("ais"):
             self.ais = self.set_ais_parser(settings["enc"]["ais"]) 
-        if settings["enc"].get("ais").get("module") == "db":
-            self.get_db_data_fun = self.ais.get_db_data
+            if settings["enc"].get("ais").get("module") == "db":
+                self.get_db_data_fun = self.ais.get_db_data
     
 
     def get_layers(self) -> list[Layer]:
