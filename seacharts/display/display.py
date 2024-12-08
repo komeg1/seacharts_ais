@@ -38,13 +38,13 @@ class Display:
     )
 
     def __init__(self, settings: dict, environment: env.Environment):
-        self.root =tk.Tk()
-        self.static_info_window = AISStaticInfoWindow(self.root, AISShipData())
-       
         self._selected_weather = None
         self.weather_map = None
         self._cbar = None
         self._settings = settings
+        if self._settings["enc"].get("ais").get("static_info") == True:
+            self.root =tk.Tk()
+            self.static_info_window = AISStaticInfoWindow(self.root, AISShipData())
         self.crs = UTM(environment.scope.extent.utm_zone,
                        southern_hemisphere=environment.scope.extent.southern_hemisphere)
         self._bbox = self._set_bbox(environment)
@@ -75,7 +75,8 @@ class Display:
             assign_custom_colors(self._settings["enc"]["ais"]["colors"])
         if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("module") == "live":
             self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True, cache_frame_data=False)
-        self.root.mainloop()
+        if self._settings["enc"].get("ais").get("static_info") == True:
+            self.root.mainloop()
         
         
         

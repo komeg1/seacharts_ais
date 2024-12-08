@@ -69,5 +69,14 @@ class Ship(Body):
         coords = [left_aft, left_bow, (x, y + h / 2), right_bow, right_aft]
         return geo.Polygon(coords)
     
-    
+@dataclass
+class CirclePolygon(Body):
+    radius: float = 20.0
+
+    def _body_polygon(self) -> geo.Polygon:
+        if self.radius <= 0:
+            raise ValueError(f"{self.__class__.__name__} must have a positive radius")
+        # Create the circular polygon and apply rotation even if it has no visual effect
+        circle = self.center.buffer(self.radius * self.scale)
+        return self.rotate(circle)
 

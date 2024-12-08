@@ -351,11 +351,17 @@ class FeaturesManager:
                         lon_scale=float(other[2]) if len(other) > 2 else 2.0,
                         lat_scale=float(other[3]) if len(other) > 3 else 1.0,
                     )
-                    ship = shapes.Ship(*pose, **kwargs)
-                    artist = self.new_artist(ship.geometry, color, ship_info=ship_details,z_order=1000)
-                    if self._vessels.get(ship_id, None):
+                    shape_class = shapes.Rectangle if len(str(ship_details[0])) < 9 else shapes.CirclePolygon if ship_details[3] is None or ship_details[3] == 0 else shapes.Ship
+                    if shape_class is shapes.Rectangle:
+                        shape_instance = shape_class(*pose,width=20*kwargs["scale"],height=20*kwargs["scale"])
+                    elif shape_class is shapes.CirclePolygon:
+                        shape_instance = shape_class(*pose,scale=kwargs["scale"])
+                    else:
+                        shape_instance = shape_class(*pose, **kwargs)
+                    artist = self.new_artist(shape_instance.geometry, color, ship_info=ship_details, z_order=1000)
+                    if self._vessels.get(ship_id):
                         self._vessels.pop(ship_id)["artist"].remove()
-                    new_vessels[ship_id] = dict(ship=ship, artist=artist)
+                    new_vessels[ship_id] = dict(ship=shape_instance, artist=artist)
                 self.replace_vessels(new_vessels)
 
     def replace_vessels(self, new_artists):

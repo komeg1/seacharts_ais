@@ -138,6 +138,9 @@ enc:
         scale: 
           required: False
           type: float
+        static_info:
+          required: False
+          type: boolean
 
 
 

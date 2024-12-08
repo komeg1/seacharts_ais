@@ -19,7 +19,10 @@ class AISParser:
     def convert_to_utm(self, x: float, y: float) -> tuple[int, int]:
         if not self.validate_lon_lat(x, y):
             return (0, 0)
-        return self.scope.extent.convert_lat_lon_to_utm(x, y)
+        try:
+            return self.scope.extent.convert_lat_lon_to_utm(x, y)
+        except OverflowError:
+            return(0,0)
     
     def validate_lon_lat(self, lon: float, lat: float) -> bool:
         if -180 <= lon <= 180 and -90 <= lat <= 90:
@@ -40,8 +43,6 @@ class AISParser:
                 
                 if transformed_row == (-1,-1,-1,-1,""):
                     continue
-                if not self.scope.extent.is_in_bounding_box(transformed_row[1],transformed_row[2]):
-                    continue
                 ships.append(transformed_row)
         return ships
     
@@ -54,6 +55,9 @@ class AISParser:
             else:
                 lat = float(ship.lat)
                 lon = float(ship.lon)
+            if not self.scope.extent.is_in_bounding_box(lat,lon):
+                print("not in bb")
+                return (-1,-1,-1,-1,"")
             heading = float(ship.heading) if ship.heading != '' and ship.heading != None else 0
             heading = heading if heading <= 360 else 0 
             color = ship.color

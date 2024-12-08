@@ -173,25 +173,27 @@ class EventsManager:
 
     def _click_press(self, event: Any) -> None:
         try:
-            if event.inaxes is None:  # Click was outside the axes
+            if event.inaxes is None:  
                 return
         
-            # Convert click event to geographic coordinates
             x, y = event.xdata, event.ydata
-            if x is None or y is None:  # If data is not available, return
+            if x is None or y is None:  
                 return 
 
             x, y = event.xdata, event.ydata
             
-            # Check if the click was inside the Shapely geometry
+
             point_clicked = Point(x, y)
-            for artist in self._display.features.static_info_data:
-                geometry = artist["geometry"]
-                vessel_info = artist["ship_info"]
-                if geometry.contains(point_clicked):
-                    self._display.static_info_window.refresh_data(vessel_info)
-                    # Perform any action based on the geometry clicked
-                    break
+            if self._display._settings["enc"].get("ais").get("static_info") == True:
+                for artist in self._display.features.static_info_data:
+                    geometry = artist["geometry"]
+                    vessel_info = artist["ship_info"]
+                    if geometry.contains(point_clicked):
+                        print(f"Clicked inside geometry at: ({x}, {y}), vessel_info: {vessel_info}")
+                        self._display.static_info_window.refresh_data(vessel_info)
+                        break
+                else:
+                    print(f"Clicked outside all geometries at: ({x}, {y})")
                 
             if event.inaxes != self._display.axes:
                 return
@@ -200,11 +202,11 @@ class EventsManager:
                 self._view_limits["y"] = self._display.axes.get_ylim()
                 self._mouse_press = dict(x=event.xdata, y=event.ydata)
         except AttributeError as e:
-            # Suppress AttributeError related to FeatureArtist
+            
             if "FeatureArtist" in str(e):
-                pass  # Ignore the error
+                pass 
             else:
-                raise  # Raise other unexpected exceptions
+                raise 
                     
         
 

@@ -69,7 +69,10 @@ class AISLiveParser(AISParser):
             self.ships_info.clear()
             for ship in tracker.tracks:
                 aisship = AISLiveShipData(ship)
-                self.ships_info.append(aisship)
+                if aisship.lat is not None and aisship.lon is not None:
+                    lat, lon = self.convert_to_utm(float(aisship.lat), float(aisship.lon))
+                    if self.scope.extent.is_in_bounding_box(lat,lon):
+                        self.ships_info.append(aisship)
         timer = threading.Timer(self.interval, self.get_current_data, [tracker])
         timer.start()
 

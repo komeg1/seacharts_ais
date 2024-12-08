@@ -11,3 +11,4 @@ from .scope import Scope, MapFormat
 from .ais import AISParser, AISShipData
 from .aisLive import AISLiveParser
 from .aisDatabase import AISDatabaseParser
+
