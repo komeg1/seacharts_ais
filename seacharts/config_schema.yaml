@@ -98,6 +98,12 @@ enc:
         module:
           required: False
           type: string
+        connection_string:
+          required: False
+          type: string
+        coords_type:
+          required: False
+          type: string
         #address of the live AIS stream
         address:
           required: False
@@ -110,6 +116,34 @@ enc:
         interval:
           required: False
           type: integer
+        colors:
+          required: false
+          type: dict
+          minlength: 0
+          valuesrules:
+            type: string
+          keysrules:
+            type: string
+        db_fields:
+          required: false
+          type: dict
+          minlength: 0
+          valuesrules:
+            type: string
+          keysrules:
+            type: string
+        dynamic_scale: 
+          required: False
+          type: boolean
+        scale: 
+          required: False
+          type: float
+        static_info:
+          required: False
+          type: boolean
+
+
+
 
     time:
       required: False

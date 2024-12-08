@@ -4,7 +4,8 @@ Contains the EventsManager class for managing display interaction events.
 from typing import Any
 
 import matplotlib.pyplot as plt
-
+from matplotlib.backend_bases import PickEvent
+from shapely.geometry import Point, Polygon
 
 # noinspection PyProtectedMember
 class EventsManager:
@@ -171,17 +172,45 @@ class EventsManager:
         self._display._set_figure_position()
 
     def _click_press(self, event: Any) -> None:
-        """
-        Captures the mouse press event and stores the current view limits.
+        try:
+            if event.inaxes is None:  
+                return
+        
+            x, y = event.xdata, event.ydata
+            if x is None or y is None:  
+                return 
 
-        :param event: The mouse button press event containing the coordinates.
-        """
-        if event.inaxes != self._display.axes:
-            return
-        if event.button == plt.MouseButton.LEFT:
-            self._view_limits["x"] = self._display.axes.get_xlim()
-            self._view_limits["y"] = self._display.axes.get_ylim()
-            self._mouse_press = dict(x=event.xdata, y=event.ydata)
+            x, y = event.xdata, event.ydata
+            
+
+            point_clicked = Point(x, y)
+            if self._display._settings["enc"].get("ais").get("static_info") == True:
+                for artist in self._display.features.static_info_data:
+                    geometry = artist["geometry"]
+                    vessel_info = artist["ship_info"]
+                    if geometry.contains(point_clicked):
+                        print(f"Clicked inside geometry at: ({x}, {y}), vessel_info: {vessel_info}")
+                        self._display.static_info_window.refresh_data(vessel_info)
+                        break
+                else:
+                    print(f"Clicked outside all geometries at: ({x}, {y})")
+                
+            if event.inaxes != self._display.axes:
+                return
+            if event.button == plt.MouseButton.LEFT:
+                self._view_limits["x"] = self._display.axes.get_xlim()
+                self._view_limits["y"] = self._display.axes.get_ylim()
+                self._mouse_press = dict(x=event.xdata, y=event.ydata)
+        except AttributeError as e:
+            
+            if "FeatureArtist" in str(e):
+                pass 
+            else:
+                raise 
+                    
+        
+
+        
 
     def _click_release(self, _) -> None:
         """
@@ -205,3 +234,5 @@ class EventsManager:
         self._display.axes.set_xlim(self._view_limits["x"])
         self._display.axes.set_ylim(self._view_limits["y"])
         self._display.redraw_plot()
+
+    

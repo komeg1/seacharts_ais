@@ -33,8 +33,12 @@ def build_directory_structure(features: list[str], resources: list[str], parser:
     :param parser: An instance of DataParser used to get the source root name.
     """
     map_dir_name = parser.get_source_root_name()
-    paths.shapefiles.mkdir(exist_ok=True)
-    paths.shapefiles =  paths.shapefiles / map_dir_name
+    if map_dir_name is not None:
+        paths.shapefiles.mkdir(exist_ok=True)
+        paths.shapefiles = paths.shapefiles / map_dir_name
+    else:
+        print("Warning: map_dir_name is None, skipping directory creation.")
+    # Handle the case where map_dir_name is None
     paths.output.mkdir(exist_ok=True)
     paths.shapefiles.mkdir(exist_ok=True)
     # shutil.copy(paths.config, paths.shapefiles) # used to save initial config

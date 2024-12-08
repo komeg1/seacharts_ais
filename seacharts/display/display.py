@@ -6,7 +6,6 @@ import threading
 import tkinter as tk
 from pathlib import Path
 from typing import Any
-
 from colorama import Fore
 import matplotlib
 from matplotlib.animation import FuncAnimation
@@ -17,13 +16,15 @@ from matplotlib.widgets import Slider, RadioButtons
 from cartopy.crs import UTM
 from matplotlib.gridspec import GridSpec
 from matplotlib_scalebar.scalebar import ScaleBar
+import sys
 
+from .colors import assign_custom_colors
 import seacharts.environment as env
 from .colors import colorbar
 from .events import EventsManager
 from .features import FeaturesManager
-from seacharts.core import AISLiveParser
-
+from seacharts.core.aisStaticInfoWindow import AISStaticInfoWindow
+from seacharts.core.aisShipData import AISShipData
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
 matplotlib.use("TkAgg")
@@ -41,6 +42,9 @@ class Display:
         self.weather_map = None
         self._cbar = None
         self._settings = settings
+        if self._settings["enc"].get("ais").get("static_info") == True:
+            self.root =tk.Tk()
+            self.static_info_window = AISStaticInfoWindow(self.root, AISShipData())
         self.crs = UTM(environment.scope.extent.utm_zone,
                        southern_hemisphere=environment.scope.extent.southern_hemisphere)
         self._bbox = self._set_bbox(environment)
@@ -67,11 +71,17 @@ class Display:
         else:
             self._set_figure_position()
 
-<<<<<<< HEAD
-        if self._settings["enc"].get("ais").get("module") == "live":
-            self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True)
+        if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("colors") is not None:
+            assign_custom_colors(self._settings["enc"]["ais"]["colors"])
+        if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("module") == "live":
+            self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True, cache_frame_data=False)
+        if self._settings["enc"].get("ais").get("static_info") == True:
+            self.root.mainloop()
+        
+        
+        
 
-=======
+
     def _set_bbox(self, environment: env.Environment) -> tuple[float, float, float, float]:
         """
         Sets bounding box for the display taking projection's (crs's) x and y limits for display into account.
@@ -91,15 +101,21 @@ class Display:
             for i in changed:
                 print(Fore.RED + f"index {i}: {environment.scope.extent.bbox[i]} changed to {bbox[i]}" + Fore.RESET)
         return bbox
->>>>>>> upstream/main
-
+    
     def start(self) -> None:
         self.started__ = """
         Starts the display, if it is not already started.
         """
+
         if self._is_active:
             return
+
+        
         plt.show(block=False)
+
+        
+        
+        
 
     @staticmethod
     def show(duration: float = 0.0):
@@ -491,11 +507,11 @@ class Display:
             plt.close()
         self._draw_animated_artists()
 
-    def update_ais(self, frame):
+    def update_ais(self, frame) -> list:
         """
         Update ENC with AIS data parsed from user-specified resources every
         given time interval
-        :return: None
+        :return: list of artists to be animated 
         """
         ships = self._environment.ais.get_ships()
         self.add_vessels(*ships)
@@ -751,6 +767,10 @@ class Display:
                 if val != last_value:
                     self._weather_slider_handle(val)
                     last_value = val
+                    if self._settings["enc"].get("ais").get("module") == "db":
+                        ships = self._environment.get_db_data_fun(self._environment.scope.time.datetimes[last_value])
+                        self.add_vessels(*ships)
+                        self.redraw_plot()
 
         def __update(val):
             index = int(self.slider.val)

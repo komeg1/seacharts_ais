@@ -7,6 +7,7 @@ from matplotlib.lines import Line2D
 from shapely.geometry import MultiLineString, MultiPolygon
 
 from seacharts import shapes, core
+
 from .colors import color_picker
 
 
@@ -38,6 +39,7 @@ class FeaturesManager:
         """
         self._display = display
         self.show_vessels = True
+        self.static_info_data = []
         self._vessels = {}
         self._seabeds = {}
         self._land = None
@@ -131,7 +133,7 @@ class FeaturesManager:
             artist = self.new_artist(layer.geometry, color, z_order=z_order)
         return artist
 
-    def new_artist(self, geometry, color, z_order=None, **kwargs):
+    def new_artist(self, geometry, color, z_order=None, ship_info=None, **kwargs):
         """
         Creates a new artist for a given geometry and adds it to the display.
 
@@ -139,6 +141,7 @@ class FeaturesManager:
         :param color: The color of the geometry.
         :param z_order: The z-order for rendering.
         :param kwargs: Additional arguments to be passed to the artist creation.
+        :param ship_info: Information about the ship to be rendered.
 
         :return: The created artist for the geometry.
         """
@@ -149,10 +152,15 @@ class FeaturesManager:
             kwargs["ec"] = color[0]
             kwargs["fc"] = color[1]
         else:
-            kwargs["color"] = color
+            kwargs["color"] = color   
+        # Add the patch to the axes
         artist = self._display.axes.add_feature(ShapelyFeature([geometry], **kwargs))
         if z_order is None:
             artist.set_animated(True)
+        if ship_info is not None:
+            self.static_info_data.append({'geometry': geometry, 'artist': artist, "ship_info": self._display._environment.ais.get_ship_by_mmsi(ship_info[0])})
+        
+        
         return artist
 
     def new_line_artist(self, line_geometry, color, z_order=None, **kwargs):
@@ -343,11 +351,17 @@ class FeaturesManager:
                         lon_scale=float(other[2]) if len(other) > 2 else 2.0,
                         lat_scale=float(other[3]) if len(other) > 3 else 1.0,
                     )
-                    ship = shapes.Ship(*pose, **kwargs)
-                    artist = self.new_artist(ship.geometry, color)
-                    if self._vessels.get(ship_id, None):
+                    shape_class = shapes.Rectangle if len(str(ship_details[0])) < 9 else shapes.CirclePolygon if ship_details[3] is None or ship_details[3] == 0 else shapes.Ship
+                    if shape_class is shapes.Rectangle:
+                        shape_instance = shape_class(*pose,width=20*kwargs["scale"],height=20*kwargs["scale"])
+                    elif shape_class is shapes.CirclePolygon:
+                        shape_instance = shape_class(*pose,scale=kwargs["scale"])
+                    else:
+                        shape_instance = shape_class(*pose, **kwargs)
+                    artist = self.new_artist(shape_instance.geometry, color, ship_info=ship_details, z_order=1000)
+                    if self._vessels.get(ship_id):
                         self._vessels.pop(ship_id)["artist"].remove()
-                    new_vessels[ship_id] = dict(ship=ship, artist=artist)
+                    new_vessels[ship_id] = dict(ship=shape_instance, artist=artist)
                 self.replace_vessels(new_vessels)
 
     def replace_vessels(self, new_artists):

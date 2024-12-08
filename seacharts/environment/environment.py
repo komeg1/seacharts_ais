@@ -1,8 +1,8 @@
 """
 Contains the Environment class for collecting and manipulating loaded spatial data.
 """
-from seacharts.core import Scope, MapFormat, S57Parser, FGDBParser, DataParser, AISParser, AISLiveParser
 import _warnings
+from seacharts.core import Scope, MapFormat, S57Parser, FGDBParser, DataParser, AISParser, AISLiveParser,AISDatabaseParser
 from .map import MapData
 from .weather import WeatherData
 from .extra import ExtraLayers
@@ -40,7 +40,10 @@ class Environment:
                 self.extra_layers.parse_resources_into_shapefiles()
 
         if settings["enc"].get("ais"):
-            self.ais = self.set_ais_parser(settings["enc"]["ais"])
+            self.ais = self.set_ais_parser(settings["enc"]["ais"]) 
+            if settings["enc"].get("ais").get("module") == "db":
+                self.get_db_data_fun = self.ais.get_db_data
+    
 
     def get_layers(self) -> list[Layer]:
         """
@@ -78,7 +81,10 @@ class Environment:
         else:
             raise ValueError("Unsupported map format")
         
+    
     def set_ais_parser(self, settings: dict) -> AISParser:
         if settings.get("module") == "live":
             return AISLiveParser(self.scope)
+        if(settings.get("module") == "db"):
+            return AISDatabaseParser(self.scope)
         return AISParser(self.scope)

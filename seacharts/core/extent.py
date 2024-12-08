@@ -162,6 +162,10 @@ class Extent:
             int(self.origin[1] + self.size[1] / 2),
         )
 
+    def is_in_bounding_box(self,x,y) -> bool:
+        x_min,y_min,x_max,y_max = self._bounding_box_from_origin_size()
+        return (x_min <= x <= x_max) and (y_min <= y <= y_max)
+
     def _bounding_box_from_origin_size(self) -> tuple[int, int, int, int]:
         """
         Calculates the bounding box based on the origin and size.
