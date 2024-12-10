@@ -735,7 +735,11 @@ class Display:
         # noinspection PyUnresolvedReferences
         return plt.fignum_exists(self.figure.number)
 
-    def _terminate(self):
+    def _terminate(self,event = None):
+        if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("module") == "live" and self._animation is not None:
+            plt.pause(0.1)
+            self._animation.event_source.stop()
+
         plt.close(self.figure)
 
     def _weather_slider_handle(self, val):

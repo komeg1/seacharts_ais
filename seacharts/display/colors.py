@@ -37,7 +37,7 @@ _ship_colors = dict(
 )
 
 _vessel_colors = dict(
-    default              = ("#CCCCCC", "#CCCCCC55"),
+    DEFAULT              = ("#CCCCCC", "#CCCCCC55"),
     WIG                  = ("#FF5733", "#FF573355"),
     FISHING              = ("#FF8C00", "#FF8C0055"),
     TOWING               = ("#FFD700", "#FFD70055"),

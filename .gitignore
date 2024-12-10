@@ -147,3 +147,4 @@ tests
 .idea
 
 #other
+**/condaenv.lnk

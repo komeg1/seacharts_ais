@@ -39,6 +39,7 @@ enc:
     connection_string: "data/ais.db"
     coords_type: "lonlat"
     interval: 10
+    static_info: True
  
     #PL STREAM
     address: "195.182.206.250"
