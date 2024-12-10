@@ -217,6 +217,7 @@ class EventsManager:
         Resets mouse press tracking and refreshes the display.
         """
         self._mouse_press = None
+        self._display.update_ais()
         self._display.redraw_plot()
 
     def _mouse_motion(self, event: Any) -> None:

@@ -74,7 +74,7 @@ class Display:
         if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("colors") is not None:
             assign_custom_colors(self._settings["enc"]["ais"]["colors"])
         if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("module") == "live":
-            self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True, cache_frame_data=False)
+            self._animation = FuncAnimation(self.figure, self.update_ais, interval=self._settings["enc"].get("ais").get("interval")*1000, blit=True, cache_frame_data=False)
         if self._settings["enc"].get("ais").get("static_info") == True:
             self.root.mainloop()
         
@@ -507,13 +507,16 @@ class Display:
             plt.close()
         self._draw_animated_artists()
 
-    def update_ais(self, frame) -> list:
+    def update_ais(self, frame=None) -> list:
         """
         Update ENC with AIS data parsed from user-specified resources every
         given time interval
         :return: list of artists to be animated 
         """
+
+
         ships = self._environment.ais.get_ships()
+        self.features.static_info_data = []
         self.add_vessels(*ships)
         return self.features.animated
 
@@ -739,7 +742,6 @@ class Display:
         if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("module") == "live" and self._animation is not None:
             plt.pause(0.1)
             self._animation.event_source.stop()
-
         plt.close(self.figure)
 
     def _weather_slider_handle(self, val):
