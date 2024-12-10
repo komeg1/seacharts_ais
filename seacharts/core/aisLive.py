@@ -51,7 +51,7 @@ class AISLiveParser(AISParser):
 
         :return: None
         """
-        print("Listening to stream {host}:{port}", self.host, self.port)
+        print(f"Listening to stream {self.host}:{self.port}")
         with self.ais as tracker:
             t = threading.Timer(self.interval, self.get_current_data, [tracker])
             t.start()

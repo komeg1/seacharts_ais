@@ -34,6 +34,7 @@ class AISParser:
     
     def read_ships(self) -> list[list]:
         ships = []
+        not_rendered_cnt = 0
         with self.ships_list_lock:
             for row in self.ships_info:
                 if row.lat == None or row.lon == None:
@@ -42,8 +43,10 @@ class AISParser:
                 transformed_row = self.transform_ship(row)
                 
                 if transformed_row == (-1,-1,-1,-1,""):
+                    not_rendered_cnt+=1
                     continue
                 ships.append(transformed_row)
+        #print(f"not rendered ships : {not_rendered_cnt}\n")
         return ships
     
     
@@ -56,7 +59,7 @@ class AISParser:
                 lat = float(ship.lat)
                 lon = float(ship.lon)
             if not self.scope.extent.is_in_bounding_box(lat,lon):
-                print("not in bb")
+
                 return (-1,-1,-1,-1,"")
             heading = float(ship.heading) if ship.heading != '' and ship.heading != None else 0
             heading = heading if heading <= 360 else 0 
@@ -74,15 +77,15 @@ class AISParser:
     @staticmethod
     def color_resolver(msg):
         if msg is None:
-            return "default"
+            return "DEFAULT"
         if isinstance(msg,str):
             return msg
         
         msg = int(msg)
         if msg == 0:
-            return  'default' 
+            return  'DEFAULT' 
         elif 1 <= msg <= 19:
-            return  'default'   
+            return  'DEFAULT'   
         elif msg == 20:
             return  'WIG' 
         elif msg == 21:

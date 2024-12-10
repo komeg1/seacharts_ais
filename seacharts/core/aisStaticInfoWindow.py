@@ -41,7 +41,6 @@ class AISStaticInfoWindow:
         self.ais_version_var = StringVar(value=f"AIS Version: {self.ship_data.ais_version}")
         self.ais_type_var = StringVar(value=f"AIS Type: {self.ship_data.ais_type}")
         self.status_var = StringVar(value=f"Status: {self.ship_data.status}")
-        self.color_var = StringVar(value=f"Color: {self.ship_data.color}")
         
         self.create_widgets()
 
@@ -66,7 +65,6 @@ class AISStaticInfoWindow:
             self.ais_version_var,
             self.ais_type_var,
             self.status_var,
-            self.color_var,
         ]
 
         for var in labels:

@@ -38,7 +38,7 @@ class AISDatabaseParser(AISParser):
         try:
             self._db = sqlite3.connect(self._connection_string)
             self.cursor = self._db.cursor()
-            print("db connected")
+            print("connected to db:", self._connection_string)
         except sqlite3.Error as error:
             raise ValueError(f"Unable to connect to database \n{error}") from None
 
@@ -61,9 +61,8 @@ class AISDatabaseParser(AISParser):
         :return: list of ships from the period
         :rtype: list[tuple]
         """
-        print(timestamp)
-        time_start,time_end = self._resolve_timestamp(timestamp)
 
+        time_start,time_end = self._resolve_timestamp(timestamp)
         #time_end = datetime.strptime(slider_time_end_val, "%d-%m-%Y %H:%M")
         query= f"""
                 SELECT {', '.join(f't.{custom}' for default, custom in self.db_column_names.items())}
@@ -78,11 +77,10 @@ class AISDatabaseParser(AISParser):
 
                 """
         
-        print(query)
         
         try:
             df = pd.read_sql_query(query, self._db, params={"time_start":time_start,"time_end": time_end})
-            print(df)
+            print(f"received {len(df)} rows")
         except pd.errors.DatabaseError as error:
             raise ValueError(f"Unable to perform a query \n{error}") from None
 
@@ -122,11 +120,6 @@ class AISDatabaseParser(AISParser):
                 time_start = (timestamp - timedelta(days=365)).strftime("%d-%m-%Y %H:%M:%S")
             case _:
                 time_start = (timestamp - timedelta(hours=1)).strftime("%d-%m-%Y %H:%M:%S")
-
-        
-
-        print(time_start)
-        print(time_end)
 
         return time_start,time_end
     
