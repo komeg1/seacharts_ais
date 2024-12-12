@@ -107,7 +107,7 @@ def assign_custom_colors(colors:dict):
     for name,color in colors.items():
         if name in _vessel_colors:
             _vessel_colors[name] = (color,color + "55")
-            print(_vessel_colors[name])
+            #print(_vessel_colors[name])
 
 def color_picker(name: str, bins: int = None) -> tuple:
     #print(f"picked color {name}")

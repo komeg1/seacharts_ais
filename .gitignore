@@ -135,6 +135,7 @@ dmypy.json
 data/ais.db
 **/*.db
 main.py
+config.yaml
 todo.txt
 data/db/
 data/shapefiles/
@@ -148,3 +149,4 @@ tests
 
 #other
 **/condaenv.lnk
+*/config.yaml

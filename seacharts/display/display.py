@@ -513,6 +513,7 @@ class Display:
         given time interval
         :return: list of artists to be animated 
         """
+        self.features.static_info_data = []
         ships = self._environment.ais.get_ships()
         self.add_vessels(*ships)
         return self.features.animated
