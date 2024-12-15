@@ -74,7 +74,7 @@ class Display:
         if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("colors") is not None:
             assign_custom_colors(self._settings["enc"]["ais"]["colors"])
         if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("module") == "live":
-            self._animation = FuncAnimation(self.figure, self.update_ais, interval=self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("interval")*1000, blit=True, cache_frame_data=False)
+            self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True, cache_frame_data=False)
         if self._settings["enc"].get("ais").get("static_info") == True:
             self.root.mainloop()
         
