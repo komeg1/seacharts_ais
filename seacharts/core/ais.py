@@ -21,7 +21,7 @@ class AISParser:
         if not self.validate_lon_lat(x, y):
             return (0, 0)
         try:
-            return self.scope.extent.convert_lat_lon_to_utm(x, y)
+            return self.scope.extent.convert_lat_lon_to_utm(y, x)
         except OverflowError:
             return(0,0)
     
@@ -56,21 +56,21 @@ class AISParser:
         try:
             mmsi = ship.mmsi
             if(self.scope.settings["enc"]["ais"]["coords_type"] == "lonlat"):
-                lat, lon = self.convert_to_utm(ship.lat, ship.lon)
+                lon,lat = self.convert_to_utm(ship.lon, ship.lat)
             else:
                 lat = float(ship.lat)
                 lon = float(ship.lon)
-            if not self.scope.extent.is_in_bounding_box(lat,lon):
+            if not self.scope.extent.is_in_bounding_box(lon,lat):
                 return (-1,-1,-1,-1,"")
             heading = float(ship.heading) if ship.heading != '' and ship.heading != None else 0
             heading = heading if heading <= 360 else 0 
             color = ship.color
-            if(ship.to_bow is not None):
+            if(type(ship.to_bow) is int and ship.to_bow is not None):
                 scale = self.calculate_scale({"to_bow": ship.to_bow,"to_stern":ship.to_stern,"to_port":ship.to_port,"to_starboard":ship.to_starboard})
-                return (mmsi, int(lat), int(lon), heading, color,scale)
-        except:
+                return (mmsi, int(lon), int(lat), heading, color,scale)
+        except Exception as e:
             return (-1,-1,-1,-1,"")
-        return (mmsi, int(lat), int(lon), heading, color, self._user_scale)
+        return (mmsi, int(lon), int(lat), heading, color, self._user_scale)
     
     def get_ship_by_mmsi(self,mmsi: str) -> AISShipData:
         return next((ship for ship in self.ships_info if str(ship.mmsi) == str(mmsi)), None)
@@ -160,7 +160,7 @@ class AISParser:
         elif 65 <= msg <= 68:
             return  'PASSENGER'   
         elif msg == ShipType.CARGO.value:
-            return  'PASSENGER'  
+            return  'CARGO'  
         elif msg == ShipType.CARGO_A.value:
             return  'CARGO' 
         elif msg == ShipType.CARGO_B.value:
@@ -174,7 +174,7 @@ class AISParser:
         elif 75 <= msg <= 78:
             return  'CARGO'  
         elif msg == ShipType.TANKER.value:
-            return  'CARGO'  
+            return  'TANKER'  
         elif msg == ShipType.TANKER_A.value:
             return  'TANKER' 
         elif msg == ShipType.TANKER_B.value:

@@ -85,7 +85,7 @@ class AISDatabaseParser(AISParser):
             raise ValueError(f"Unable to perform a query \n{error}") from None
 
         for index,col in df.iterrows():
-                self.ships_info.append(AISDbShipData(col))
+                self.ships_info.append(AISDbShipData(col,self.db_column_names))
         return self.get_ships()
 
         # with open('data.csv', 'w', newline='') as f:
@@ -152,29 +152,35 @@ class AISDatabaseParser(AISParser):
 
     
 class AISDbShipData(AISShipData):
-    def __init__(self, col: pd.Series):
-        self.mmsi = col.get("mmsi")
-        self.lon = col.get("longtitude")
-        self.lat = col.get("latitude")
-        self.turn = col.get("turn")
-        self.ship_type = col.get("ship_type")
-        self.last_updated = col.get("timestamp")
-        self.name = col.get("name")
-        self.ais_version = col.get("ais_version")
-        self.ais_type = col.get("ais_type")
-        self.status = col.get("status")
-        self.course = col.get("course")
-        self.speed = col.get("speed")
-        self.heading = col.get("heading")
-        self.imo = col.get("imo")
-        self.callsign = col.get("callsign")
-        self.shipname = col.get("shipname")
-        self.to_bow = col.get("to_bow")
-        self.to_stern = col.get("to_stern")
-        self.to_port = col.get("to_port")
-        self.to_starboard = col.get("to_starboard")
-        self.destination = col.get("destination")
-        self.color = col.get("color") or AISParser.color_resolver(col.get("ship_type"))
+    def __init__(self, col: pd.Series, db_column_names: dict):
+
+        self.mmsi = None
+        self.lon = None
+        self.lat = None
+        self.turn = None
+        self.ship_type = None
+        self.last_updated = None
+        self.name = None
+        self.ais_version = None
+        self.ais_type = None
+        self.status = None
+        self.course = None
+        self.speed = None
+        self.heading = None
+        self.imo = None
+        self.callsign = None
+        self.shipname = None
+        self.to_bow = None
+        self.to_stern = None
+        self.to_port = None
+        self.to_starboard = None
+        self.destination = None
+        self.color = None
+        self.color = None
+        for default, custom in db_column_names.items():
+            setattr(self, default, col.get(custom))
+
+        
     
 
 

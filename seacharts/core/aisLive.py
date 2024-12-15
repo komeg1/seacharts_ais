@@ -2,6 +2,7 @@ from seacharts.core import AISParser, Scope
 from seacharts.core.aisShipData import AISShipData
 from pyais.stream import TCPConnection
 from pyais import AISTracker, AISTrack
+import os
 import threading
 from datetime import datetime
 
@@ -35,6 +36,11 @@ class AISLiveParser(AISParser):
             self._dynamic_scale = False
         self._user_scale = 1.0 if self.scope.settings["enc"]["ais"].get("scale") is None else self.scope.settings["enc"]["ais"]["scale"]
 
+        if not os.path.exists("seacharts/data/ais_live.csv"):
+            with open("data/ais_live.csv", "w") as f:
+               f.write("latitude,longitude,heading,color,timestamp,mmsi,callsign,destination,to_bow,to_stern,to_port,to_starboard\n")
+
+
     def get_ships(self) -> list[tuple]:
         """
         Retrieve list of ships received from AIS stream
@@ -65,14 +71,17 @@ class AISLiveParser(AISParser):
         :param tracker: AISTracker object
         :return: None
         """
+        print("Getting current data")
         with self.ships_list_lock:
             self.ships_info.clear()
             for ship in tracker.tracks:
                 aisship = AISLiveShipData(ship)
                 if aisship.lat is not None and aisship.lon is not None:
-                    lat, lon = self.convert_to_utm(float(aisship.lat), float(aisship.lon))
-                    if self.scope.extent.is_in_bounding_box(lat,lon):
+                    lon,lat = self.convert_to_utm(float(aisship.lon), float(aisship.lat))
+                    if self.scope.extent.is_in_bounding_box(lon,lat):
                         self.ships_info.append(aisship)
+                        with open("data/ais_live.csv", "a+") as f:
+                           f.write(f"{lat},{lon},{aisship.heading},{aisship.color},{aisship.last_updated},{aisship.mmsi},{aisship.callsign},{aisship.destination},{aisship.to_bow},{aisship.to_stern},{aisship.to_port},{aisship.to_starboard}\n")
         timer = threading.Timer(self.interval, self.get_current_data, [tracker])
         timer.start()
 
@@ -87,16 +96,16 @@ class AISLiveParser(AISParser):
         """
         try:
             mmsi = ship.mmsi
-            lat, lon = self.convert_to_utm(float(ship.lat), float(ship.lon))
+            lon,lat = self.convert_to_utm(float(ship.lon), float(ship.lat))
             heading = float(ship.heading) if ship.heading != None else 0
             heading = heading if heading <= 360 else 0 
             color = ship.color
             if(ship.to_bow is not None):
                 scale = self.calculate_scale({"to_bow": ship.to_bow,"to_stern":ship.to_stern,"to_port":ship.to_port,"to_starboard":ship.to_starboard})
-                return (mmsi, int(lat), int(lon), heading, color,scale)
+                return (mmsi, int(lon),int(lat), heading, color,scale)
         except:
             return (-1,-1,-1,-1,"")
-        return (mmsi, int(lat), int(lon), heading, color, self._user_scale)
+        return (mmsi, int(lon),int(lat), heading, color, self._user_scale)
 
     
 
