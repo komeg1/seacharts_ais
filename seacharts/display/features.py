@@ -158,7 +158,8 @@ class FeaturesManager:
         if z_order is None:
             artist.set_animated(True)
         if ship_info is not None:
-            self.static_info_data.append({'geometry': geometry, 'artist': artist, "ship_info": self._display._environment.ais.get_ship_by_mmsi(ship_info[0])})
+            if self._display._settings["enc"].get("ais") is not None:
+                self.static_info_data.append({'geometry': geometry, 'artist': artist, "ship_info": self._display._environment.ais.get_ship_by_mmsi(ship_info[0])})
         
         
         return artist
@@ -351,13 +352,10 @@ class FeaturesManager:
                         lon_scale=float(other[2]) if len(other) > 2 else 2.0,
                         lat_scale=float(other[3]) if len(other) > 3 else 1.0,
                     )
-                    shape_class = shapes.Rectangle if len(str(ship_details[0])) < 9 else shapes.CirclePolygon if ship_details[3] is None or ship_details[3] == 0 else shapes.Ship
-                    if shape_class is shapes.Rectangle:
-                        shape_instance = shape_class(*pose,width=20*kwargs["scale"],height=20*kwargs["scale"])
-                    elif shape_class is shapes.CirclePolygon:
-                        shape_instance = shape_class(*pose,scale=kwargs["scale"])
+                    if self._display._settings["enc"].get("ais") is not None:
+                        shape_instance = FeaturesManager.resolve_ais_artist_shape(ship_details, **kwargs)
                     else:
-                        shape_instance = shape_class(*pose, **kwargs)
+                        shape_instance = shapes.Ship(*pose, **kwargs)
                     artist = self.new_artist(shape_instance.geometry, color, ship_info=ship_details, z_order=1000)
                     if self._vessels.get(ship_id):
                         self._vessels.pop(ship_id)["artist"].remove()
@@ -503,3 +501,16 @@ class FeaturesManager:
             [("id", "x", "y", "heading", "color")] + vessel_poses,
             core.paths.vessels,
         )
+
+    # AIS module related methods
+    @staticmethod
+    def resolve_ais_artist_shape(ship_details, **kwargs):
+        pose = ship_details[1:4]
+        shape_class = shapes.Rectangle if len(str(ship_details[0])) < 9 else shapes.CirclePolygon if ship_details[3] is None or ship_details[3] == 511 else shapes.Ship
+        if shape_class is shapes.Rectangle:
+            return shape_class(*pose,width=20*kwargs["scale"],height=20*kwargs["scale"])
+        elif shape_class is shapes.CirclePolygon:
+            return shape_class(*pose,scale=kwargs["scale"])
+        else:
+            return shape_class(*pose, **kwargs)
+        

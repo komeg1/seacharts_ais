@@ -42,9 +42,9 @@ class Display:
         self.weather_map = None
         self._cbar = None
         self._settings = settings
-        if self._settings["enc"].get("ais").get("static_info") == True:
-            self.root =tk.Tk()
-            self.static_info_window = AISStaticInfoWindow(self.root, AISShipData())
+        self.static_info_window = None
+        if self._settings["enc"].get("ais") is not None and self._settings["enc"]["ais"].get("static_info"):
+            self._start_static_info_window()
         self.crs = UTM(environment.scope.extent.utm_zone,
                        southern_hemisphere=environment.scope.extent.southern_hemisphere)
         self._bbox = self._set_bbox(environment)
@@ -61,6 +61,7 @@ class Display:
         self.axes, self.grid_spec, self._colorbar = self._init_axes(w)
         self.events = EventsManager(self)
         self.features = FeaturesManager(self)
+        
         self._toggle_colorbar(self._colorbar_mode)
         self._toggle_dark_mode(self._dark_mode)
         self._add_scalebar()
@@ -74,9 +75,8 @@ class Display:
         if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("colors") is not None:
             assign_custom_colors(self._settings["enc"]["ais"]["colors"])
         if self._settings["enc"].get("ais") is not None and self._settings["enc"].get("ais").get("module") == "live":
-            self._animation = FuncAnimation(self.figure, self.update_ais, interval=10, blit=True, cache_frame_data=False)
-        if self._settings["enc"].get("ais").get("static_info") == True:
-            self.root.mainloop()
+            interval = self._settings["enc"]["ais"]["interval"] if self._settings["enc"]["ais"].get("interval") is not None else 60
+            self._animation = FuncAnimation(self.figure, self.update_ais, interval=interval*1000, blit=True, cache_frame_data=False)
         
         
         
@@ -507,7 +507,7 @@ class Display:
             plt.close()
         self._draw_animated_artists()
 
-    def update_ais(self, frame) -> list:
+    def update_ais(self, frame=None) -> list:
         """
         Update ENC with AIS data parsed from user-specified resources every
         given time interval
@@ -831,3 +831,19 @@ class Display:
         # Set the window title and show the figure
         fig.canvas.manager.set_window_title('Controls')
         fig.show()
+
+    def _start_static_info_window(self):
+        """Start the static info window in a separate thread."""
+        import threading
+        self.static_info_thread = threading.Thread(target=self._run_static_info_window, daemon=True)
+        self.static_info_thread.start()
+
+    def _run_static_info_window(self):
+        """Run the Tkinter static info window."""
+        try:
+            root = tk.Tk()
+            root.title("AIS Static Info")
+            self.static_info_window = AISStaticInfoWindow(root, AISShipData())
+            root.mainloop()
+        except Exception as e:
+            print(f"Error in static info window: {e}")
