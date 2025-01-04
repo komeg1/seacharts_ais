@@ -184,7 +184,7 @@ class EventsManager:
             
 
             point_clicked = Point(x, y)
-            if self._display._settings["enc"].get("ais").get("static_info") == True:
+            if self._display._settings["enc"].get("ais") is not None and self._display._settings["enc"].get("ais").get("static_info") == True:
                 for artist in self._display.features.static_info_data:
                     geometry = artist["geometry"]
                     vessel_info = artist["ship_info"]
@@ -217,6 +217,8 @@ class EventsManager:
         Resets mouse press tracking and refreshes the display.
         """
         self._mouse_press = None
+        if self._display._settings["enc"].get("ais") is not None:
+            self._display.update_ais()
         self._display.redraw_plot()
 
     def _mouse_motion(self, event: Any) -> None:

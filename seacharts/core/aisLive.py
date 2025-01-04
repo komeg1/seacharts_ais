@@ -70,8 +70,8 @@ class AISLiveParser(AISParser):
             for ship in tracker.tracks:
                 aisship = AISLiveShipData(ship)
                 if aisship.lat is not None and aisship.lon is not None:
-                    lat, lon = self.convert_to_utm(float(aisship.lat), float(aisship.lon))
-                    if self.scope.extent.is_in_bounding_box(lat,lon):
+                    lon,lat = self.convert_to_utm(float(aisship.lon), float(aisship.lat))
+                    if self.scope.extent.is_in_bounding_box(lon,lat):
                         self.ships_info.append(aisship)
         timer = threading.Timer(self.interval, self.get_current_data, [tracker])
         timer.start()
@@ -87,16 +87,16 @@ class AISLiveParser(AISParser):
         """
         try:
             mmsi = ship.mmsi
-            lat, lon = self.convert_to_utm(float(ship.lat), float(ship.lon))
-            heading = float(ship.heading) if ship.heading != None else 0
-            heading = heading if heading <= 360 else 0 
+            lon,lat = self.convert_to_utm(float(ship.lon), float(ship.lat))
+            heading = float(ship.heading) if ship.heading != None else 511
+            heading = heading if heading <= 360 else 511
             color = ship.color
             if(ship.to_bow is not None):
                 scale = self.calculate_scale({"to_bow": ship.to_bow,"to_stern":ship.to_stern,"to_port":ship.to_port,"to_starboard":ship.to_starboard})
-                return (mmsi, int(lat), int(lon), heading, color,scale)
+                return (mmsi, int(lon),int(lat), heading, color,scale)
         except:
             return (-1,-1,-1,-1,"")
-        return (mmsi, int(lat), int(lon), heading, color, self._user_scale)
+        return (mmsi, int(lon),int(lat), heading, color, self._user_scale)
 
     
 

@@ -100,8 +100,8 @@ class AISStaticInfoWindow:
             self.root.title("AIS Ship Data - No Vessel Selected")
             self.subtitle_var.set("Click on a vessel to get more data")
 
-            self.mmsi_var.set("MMSI: No Data")
-            self.shipname_var.set("Name: No Data")
+            #self.mmsi_var.set("MMSI: No Data")
+            #self.shipname_var.set("Name: No Data")
             self.callsign_var.set("Callsign: No Data")
             self.lon_var.set("Longitude: No Data")
             self.lat_var.set("Latitude: No Data")
@@ -121,7 +121,7 @@ class AISStaticInfoWindow:
             self.ais_version_var.set("AIS Version: No Data")
             self.ais_type_var.set("AIS Type: No Data")
             self.status_var.set("Status: No Data")
-            self.color_var.set("Color: No Data")
+            #self.color_var.set("Color: No Data")
 
     def get_display_value(self, value):
         """Return 'No Data' if the value is None, otherwise return the value."""
