@@ -626,7 +626,7 @@ OTHER_D: "#D3D3D3"
 ---
 
 ### Additional information
-The AIS module collides with vessels provided through `add_vessel` method.
+The AIS module collides with vessels added through [`add_vessel`](#vessel-management) method and will be be overwritten by vessels provided through AIS module.
 
 
 ## End note
