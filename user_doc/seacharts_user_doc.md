@@ -11,6 +11,7 @@
 6. [Interactive Controls](#interactive-controls)
 7. [Drawing Functions](#drawing-functions)
 8. [Image Export](#image-export)
+9. [AIS](#ais)
 
 ## Initial Setup
 
@@ -346,6 +347,287 @@ display.save_image(
     extension=str           # Optional: file format extension (default: "png")
 )
 ```
+
+## AIS
+AIS module provides a support for displaying historical and live (provided through HTTP NMEA stream) vessels data. 
+
+The module can be configured inside the `config.yaml`. The module has to be included inside the `enc` block (description provided [here](#enc-electronic-navigation-chart-configuration)).
+Configuration options are described [here](#ais-configuration).
+
+### AIS live mode
+
+**Requirements**:
+-  continuous HTTP AIS data stream in NMEA 0183 format
+- [Time configuration block](#time-configuration)
+
+The AIS live module is based on retrieving data from a continuous HTTP AIS data stream in
+NMEA 0183 format. 
+
+The time configuration block is required to define a time-to-live for the AIS data. Based on the `period` value, the old data, that has not been updated for the specified period, will be removed from the memory of the application (e.g. if the period is set to `hour`, the data that has not been updated for the last hour will be removed).
+
+Example live mode configuration:
+```yaml
+enc:
+  time:
+    #...
+    period: "hour"
+  #...
+  ais:
+    module: "live" 
+    address: 123.456.0.000
+    port: 0000
+    interval: 10
+    #...
+```
+
+### AIS database mode
+
+**Requirements**:
+- Database file in SQLite3 format with 4 columns that corresponds to: `mmsi`, `lon`, `lat`, `last_updated` (more information [here](#db_fields))
+- [Time configuration block](#time-configuration)
+
+The AIS database module is based on retrieving data from a SQLite3 database file. The module is designed to work with data provided in the database in the form of a table. The table must contain columns corresponding to the variables listed in the [`db_fields`](#db_fields) parameter description. For variables types, please refer to *PyAIS* documentation [here](https://pyais.readthedocs.io/en/latest/messages.html#nmea-messages).
+
+The time block configuration allows user to pick a fixed point in time from a time slider, based on which the data will be displayed. The `period` parameter defines the range of single picked time point, e.g. if the `period` is set to `hour` and the time point is set to `01-01-2022 12:00`, the closest data to this time point will be displayed, but not older than 1 hour (`01-01-2022 11:00`).
+
+Example database mode configuration:
+```yaml
+enc:
+  time:
+    #...
+    time_start: "01-01-2022 00:00"
+    time_end: "01-01-2022 01:00"
+    period: "hour"
+  #...
+  ais:
+    module: "db" 
+    connection_string: "path/to/database.db"
+    coords_type: "utm"
+    #...
+```
+
+### AIS configuration
+
+```yaml
+enc:
+  #...
+  ais:
+    module: "module" 
+    address:
+    port: 0000
+    interval: 0
+    connection_string: "conn_str"
+    coords_type: "coords_type"
+    static_info: true
+    scale: 0
+    dynamic_scale: true
+    db_fields: 
+      "KEY":"VALUE"
+    colors: 
+      "KEY":"VALUE"
+    
+```
+## Parameters options
+### ais
+- Type: none
+
+Begins the configuration block of AIS module. Inside the `enc` block.
+
+---
+### module
+- Type: `string`
+- Possible values: `live`, `db`
+
+Specifies the AIS data source mode.
+
+---
+
+### AIS Live mode parameters
+
+### address
+- Type: `string`
+
+Network address of the live AIS stream
+
+---
+### port
+- Type: `int`
+
+Port number for the AIS stream.
+
+---
+### interval
+- Type: `int`
+
+Fetch new data every `interval` seconds.
+
+---
+
+### AIS database mode parameters
+### connection_string
+- Type: `string`
+
+Connection string for the AIS data source.
+
+---
+### coords_type
+- Type: `string`
+- Possible values: `utm`, `lonlat`
+
+Defines the coordinate format of the AIS data in the database.
+
+---
+
+### db_fields
+- Type: `dictionary`
+
+Maps custom column names to corresponding variables.
+
+The database mode require 4 columns that corresponds to: `mmsi`, `lon`, `lat`, `last_updated`. Their names can be customized using this parameter.
+
+Example:
+```yaml
+enc:
+#...
+  ais:
+  ###
+    db_fields:
+      "lon":"longtitude"
+      "color":"colour"
+```
+Such configuration would expect the database table to contain 5 columns: `mmsi`, `longtitude`, `lat`, `last_updated`, `colour`.
+
+
+Supported variables:
+`mmsi`,
+`lon`,
+`lat`,
+`turn`,
+`ship_type`,
+`last_updated`,
+`name`,
+`ais_version`,
+`ais_type`,
+`status`,
+`course`,
+`speed`,
+`heading`,
+`imo`,
+`callsign`,
+`shipname`,
+`to_bow`,
+`to_stern`,
+`to_port`,
+`to_starboard`,
+`destination`,
+`color`
+
+For variables types, please refer to *PyAIS* documentation [here](https://pyais.readthedocs.io/en/latest/messages.html#nmea-messages). 
+
+The `color` variable is an additional variable, used to assign a custom color to the vessel polygon. 
+The expected values for `color` are the keys in the [`colors`](#colors) variable, e.g., DEFAULT, CARGO, etc.
+
+---
+
+### Additional parameters
+### static_info
+- Type: `boolean`
+
+Displays additional window with static inforamtion related to the vessels.
+
+---
+### scale
+- Type: `int`
+
+Multiplies the scale of every polygon on the chart by the provided value.
+
+---
+### dynamic_scale
+- Type: `boolean`
+
+Dynamically scales the vessels polygons based on the AIS message data. 
+
+For live mode, the vessels will be scaled as soon as `to_port`, `to_stern`, `to_starboard` `to_bow` variables will be available in upcoming AIS message.
+
+For database mode, the table must contain columns corresponding to the variables listed above.
+
+---
+
+### colors
+- Type: `dictionary`
+
+Assigns custom vessel color in hex format, to ship type, based on types provided in https://api.vtexplorer.com/docs/ref-aistypes.html.
+Additionaly, for vessels with no information about it's tpe, the `DEFAULT` key is supported.
+Example:
+```yaml
+enc:
+#...
+  ais:
+  ###
+    colors:
+      "DEFAULT":"#000000"
+      "CARGO":"#FFFFFF"
+```
+Above configuration would display vessels with no provided type as black polygons. The cargo vessels will be displayed as white polygons.
+
+Supported variables:
+
+`DEFAULT`, `WIG`,     `FISHING`,         `TOWING`,`TOWING_EXCEED`,    `DREDGING_UNDERWATER`,`DIVING_OPS`,`MILITARY_OPS`,     `SAILING`,   `PLEASURE_CRAFT`,   `HSC`, `HSC_A`,            `HSC_B`,          `HSC_C`,          `HSC_D`,          `PILOT`,          `RESCUE`,          `TUG`,         `PORT_TENDER`,      `ANTI_POLLUTION_EQ`,`LAW_ENFORCEMENT`,`LOCAL_VESSEL`,`MEDICAL_TRANSPORT`,`NONCOMBATANT`,`PASSENGER`,   `PASSENGER_A`,      `PASSENGER_B`,    `PASSENGER_C`,    `PASSENGER_D`,    `CARGO`,    `CARGO_A`,          `CARGO_B`,        `CARGO_C`,        `CARGO_D`,        `TANKER`,        `TANKER_A`,         `TANKER_B`,       `TANKER_C`,       `TANKER_D`,       `OTHER`,       `OTHER_A`,          `OTHER_B`,        `OTHER_C`,        `OTHER_D`,        
+
+If no colors are provided, the vessels will use the following colors:
+
+```yaml
+DEFAULT: "#CCCCCC"
+WIG: "#FF5733"
+FISHING: "#FF8C00"
+TOWING: "#FFD700"
+TOWING_EXCEED: "#FF4500"
+DREDGING_UNDERWATER: "#8A2BE2"
+DIVING_OPS: "#4682B4"
+MILITARY_OPS: "#696969"
+SAILING: "#00FF7F"
+PLEASURE_CRAFT: "#FF69B4"
+HSC: "#4B0082"
+HSC_A: "#800080"
+HSC_B: "#9370DB"
+HSC_C: "#8B0000"
+HSC_D: "#B22222"
+PILOT: "#00008B"
+RESCUE: "#FF0000"
+TUG: "#D2691E"
+PORT_TENDER: "#8B4513"
+ANTI_POLLUTION_EQ: "#20B2AA"
+LAW_ENFORCEMENT: "#000080"
+LOCAL_VESSEL: "#32CD32"
+MEDICAL_TRANSPORT: "#FF6347"
+NONCOMBATANT: "#778899"
+PASSENGER: "#1E90FF"
+PASSENGER_A: "#00CED1"
+PASSENGER_B: "#40E0D0"
+PASSENGER_C: "#4682B4"
+PASSENGER_D: "#5F9EA0"
+CARGO: "#DAA520"
+CARGO_A: "#B8860B"
+CARGO_B: "#CD853F"
+CARGO_C: "#D2B48C"
+CARGO_D: "#A0522D"
+TANKER: "#FFFF00"
+TANKER_A: "#FF4500"
+TANKER_B: "#FF6347"
+TANKER_C: "#FFA07A"
+TANKER_D: "#FA8072"
+OTHER: "#696969"
+OTHER_A: "#708090"
+OTHER_B: "#778899"
+OTHER_C: "#A9A9A9"
+OTHER_D: "#D3D3D3"
+```
+
+---
+
+### Additional information
+The AIS module collides with vessels added through [`add_vessel`](#vessel-management) method and will be be overwritten by vessels provided through AIS module.
+
 
 ## End note
 We recommend checking out files placed in `tests` directory as reference, to get familiar with the SeaCharts usage.
