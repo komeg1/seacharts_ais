@@ -11,6 +11,7 @@
 6. [Interactive Controls](#interactive-controls)
 7. [Drawing Functions](#drawing-functions)
 8. [Image Export](#image-export)
+9. [AIS](#ais)
 
 ## Initial Setup
 
@@ -346,6 +347,165 @@ display.save_image(
     extension=str           # Optional: file format extension (default: "png")
 )
 ```
+
+## AIS
+AIS module provides a support for displaying historical and real-time (provided through HTTP NMEA stream) vessels data. 
+
+The module can be configured inside the `config.yaml`. The module has to be included inside the `enc` block (description provided [here](#enc-electronic-navigation-chart-configuration)). Below are the detailed configuration options:
+
+### Prerequisites
+Database mode:
+- Database file in SQLite3 format
+- [Time configuration block](#time-configuration)
+
+
+### AIS configuration
+
+```yaml
+enc:
+  #...
+  ais:
+  #Specifies the AIS data source mode
+    module: "module" 
+    # Network address of the live AIS stream
+    address:
+    #Port number for the AIS stream.
+    port: 0000
+    #Display refresh interval given in seconds.
+    interval: 0
+    #Connection string for the AIS data source.
+    connection_string: "conn_str"
+    #Defines the coordinate format of the AIS data in the database.
+    coords_type: "coords_type"
+    #Displays additional window with static inforamtion related to the vessels.
+    static_info: true
+    #Multiplies the scale of every polygon on the chart by the provided value.
+    scale: 0
+    #Dynamically scales the vessels polygons based on the AIS message data.
+    dynamic_scale: true
+    db_table: "table_name"
+    db_fields: []
+    colors: []
+    
+```
+### Parameters options
+The parameters are splitted into database mode related and live mode related.
+### ais
+
+Begins the configuration block of AIS module. Inside the `enc` block.
+### module
+- Type: `string`
+- Possible values: `live`, `db`
+
+Specifies the AIS data source mode.
+
+### Live mode related
+### address
+- Type: `string`
+
+Network address of the live AIS stream
+#### port
+- Type: `int`
+
+Port number for the AIS stream.
+#### interval
+- Type: `int`
+
+Fetch new data interval given in seconds.
+#### connection_string
+- Type: `string`
+
+Connection string for the AIS data source.
+#### coords_type
+- Type: `string`
+- Possible values: `utm`, `lonlat`
+
+Defines the coordinate format of the AIS data in the database.
+#### static_info
+- Type: `boolean`
+
+Displays additional window with static inforamtion related to the vessels.
+#### scale
+- Type: `int`
+
+Multiplies the scale of every polygon on the chart by the provided value.
+#### dynamic_scale
+- Type: `boolean`
+
+Dynamically scales the vessels polygons based on the AIS message data. 
+
+For live mode, the vessels will be scaled as soon as `to_port`, `to_stern`, `to_starboard` `to_bow` variables will be available in upcoming AIS message.
+
+For database mode, the table must contain columns corresponding to the variables listed above.
+#### db_table
+- Type: `string`
+
+The name of the table that contains the vessels' data in database.
+#### db_fields
+- Type: `dictionary`
+
+Maps custom column names to corresponding variables.
+
+Example:
+```yaml
+enc:
+#...
+  ais:
+  ###
+    db_fields:
+      "lon":"longtitude"
+      "color":"colour"
+```
+Such configuration would map longtitude database column to `lon` variable during execution.
+
+Supported variables:
+`mmsi`,
+`lon`,
+`lat`,
+`turn`,
+`ship_type`,
+`last_updated`,
+`name`,
+`ais_version`,
+`ais_type`,
+`status`,
+`course`,
+`speed`,
+`heading`,
+`imo`,
+`callsign`,
+`shipname`,
+`to_bow`,
+`to_stern`,
+`to_port`,
+`to_starboard`,
+`destination`,
+`color`
+
+#### colors
+- Type: `dictionary`
+
+Assigns custom vessel color in hex format, to ship type, based on types provided in https://api.vtexplorer.com/docs/ref-aistypes.html.
+Additionaly, for vessels with no information about it's tpe, the `DEFAULT` key is supported.
+Example:
+```yaml
+enc:
+#...
+  ais:
+  ###
+    colors:
+      "DEFAULT":"#000000"
+      "CARGO":"#FFFFFF"
+```
+Above configuration would display vessels with no provided type as black polygons. The cargo vessels will be displayed as white polygons.
+
+Supported variables:
+
+`DEFAULT`, `WIG`,     `FISHING`,         `TOWING`,`TOWING_EXCEED`,    `DREDGING_UNDERWATER`,`DIVING_OPS`,`MILITARY_OPS`,     `SAILING`,   `PLEASURE_CRAFT`,   `HSC`, `HSC_A`,            `HSC_B`,          `HSC_C`,          `HSC_D`,          `PILOT`,          `RESCUE`,          `TUG`,         `PORT_TENDER`,      `ANTI_POLLUTION_EQ`,`LAW_ENFORCEMENT`,`LOCAL_VESSEL`,`MEDICAL_TRANSPORT`,`NONCOMBATANT`,`PASSENGER`,   `PASSENGER_A`,      `PASSENGER_B`,    `PASSENGER_C`,    `PASSENGER_D`,    `CARGO`,    `CARGO_A`,          `CARGO_B`,        `CARGO_C`,        `CARGO_D`,        `TANKER`,        `TANKER_A`,         `TANKER_B`,       `TANKER_C`,       `TANKER_D`,       `OTHER`,       `OTHER_A`,          `OTHER_B`,        `OTHER_C`,        `OTHER_D`,        
+
+### Additional information
+The AIS module collides with vessels provided through `add_vessel` method.
+
 
 ## End note
 We recommend checking out files placed in `tests` directory as reference, to get familiar with the SeaCharts usage.

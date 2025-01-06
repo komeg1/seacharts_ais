@@ -176,7 +176,6 @@ class AISDbShipData(AISShipData):
         self.to_starboard = None
         self.destination = None
         self.color = None
-        self.color = None
         for default, custom in db_column_names.items():
             setattr(self, default, col.get(custom))
 
