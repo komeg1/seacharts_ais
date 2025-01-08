@@ -384,6 +384,7 @@ enc:
 
 **Requirements**:
 - Database file in SQLite3 format with 4 columns that corresponds to: `mmsi`, `lon`, `lat`, `last_updated` (more information [here](#db_fields))
+- Table with name 'AISHistory' (Temporary solution)
 - [Time configuration block](#time-configuration)
 
 The AIS database module is based on retrieving data from a SQLite3 database file. The module is designed to work with data provided in the database in the form of a table. The table must contain columns corresponding to the variables listed in the [`db_fields`](#db_fields) parameter description. For variables types, please refer to *PyAIS* documentation [here](https://pyais.readthedocs.io/en/latest/messages.html#nmea-messages).
